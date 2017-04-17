@@ -419,8 +419,8 @@ squaresville.decorate = function(minp, maxp, data, p2data, area, node, heightmap
 			end
 		end
 	end
-	avgt = avgt + avg2/avg1
-	countt = countt + 1
+	--avgt = avgt + avg2/avg1
+	--countt = countt + 1
 end
 
 --minetest.register_on_shutdown(function()
