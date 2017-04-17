@@ -26,6 +26,7 @@ local node = setmetatable({}, {
 
 local data = {}
 local p2data = {}  -- vm rotation data buffer
+local heightmap, river = {}, {}
 
 
 local function generate(p_minp, p_maxp, seed)
@@ -41,13 +42,12 @@ local function generate(p_minp, p_maxp, seed)
 
 	vm:get_data(data)
 	p2data = vm:get_param2_data()
-  local heightmap = {}
 	local area = VoxelArea:new({MinEdge = emin, MaxEdge = emax})
 	local csize = vector.add(vector.subtract(maxp, minp), 1)
 
 	for fake_loop = 1, 1 do
-		squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap)
-		--squaresville.decorate(minp, maxp, data, p2data, area, node, heightmap)
+		squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap, river)
+		squaresville.decorate(minp, maxp, data, p2data, area, node, heightmap, river)
 	end
   squaresville.last_heightmap = heightmap
 

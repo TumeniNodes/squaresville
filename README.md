@@ -6,7 +6,7 @@ The world is fairly two-dimensional -- it doesn't generate any caves or dungeons
 
 This is a work in progress.
 
-![screenshot]()
+![screenshot](https://github.com/duane-r/squaresville/raw/master/textures/screenshot01.jpg)
 
 The source is available on github.
 
