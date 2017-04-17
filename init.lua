@@ -16,66 +16,66 @@ squaresville.world = minetest.get_worldpath()
 
 
 if not minetest.set_mapgen_setting then
-	return
+  return
 end
 
 minetest.register_on_mapgen_init(function(mgparams)
-	minetest.set_mapgen_params({mgname="singlenode", flags="nolight"})
+  minetest.set_mapgen_params({mgname="singlenode", flags="nolight"})
 end)
 
 
 -- Modify a node to add a group
 function minetest.add_group(node, groups)
-	local def = minetest.registered_items[node]
-	if not (node and def and groups and type(groups) == 'table') then
-		return false
-	end
-	local def_groups = def.groups or {}
-	for group, value in pairs(groups) do
-		if value ~= 0 then
-			def_groups[group] = value
-		else
-			def_groups[group] = nil
-		end
-	end
-	minetest.override_item(node, {groups = def_groups})
-	return true
+  local def = minetest.registered_items[node]
+  if not (node and def and groups and type(groups) == 'table') then
+    return false
+  end
+  local def_groups = def.groups or {}
+  for group, value in pairs(groups) do
+    if value ~= 0 then
+      def_groups[group] = value
+    else
+      def_groups[group] = nil
+    end
+  end
+  minetest.override_item(node, {groups = def_groups})
+  return true
 end
 
 
 function squaresville.clone_node(name)
-	if not (name and type(name) == 'string') then
-		return
-	end
+  if not (name and type(name) == 'string') then
+    return
+  end
 
-	local node = minetest.registered_nodes[name]
-	local node2 = table.copy(node)
-	return node2
+  local node = minetest.registered_nodes[name]
+  local node2 = table.copy(node)
+  return node2
 end
 
 
 squaresville.surround = function(node, data, area, ivm)
-	if not (node and data and area and ivm and type(data) == 'table' and type(ivm) == 'number') then
-		return
-	end
+  if not (node and data and area and ivm and type(data) == 'table' and type(ivm) == 'number') then
+    return
+  end
 
-	-- Check to make sure that a plant root is fully surrounded.
-	-- This is due to the kludgy way you have to make water plants
-	--  in minetest, to avoid bubbles.
-	for x1 = -1,1,2 do
-		local n = data[ivm+x1] 
-		if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
-			return false
-		end
-	end
-	for z1 = -area.zstride,area.zstride,2*area.zstride do
-		local n = data[ivm+z1] 
-		if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
-			return false
-		end
-	end
+  -- Check to make sure that a plant root is fully surrounded.
+  -- This is due to the kludgy way you have to make water plants
+  --  in minetest, to avoid bubbles.
+  for x1 = -1,1,2 do
+    local n = data[ivm+x1] 
+    if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
+      return false
+    end
+  end
+  for z1 = -area.zstride,area.zstride,2*area.zstride do
+    local n = data[ivm+z1] 
+    if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
+      return false
+    end
+  end
 
-	return true
+  return true
 end
 
 
@@ -88,10 +88,10 @@ dofile(squaresville.path .. "/mapgen.lua")
 
 
 if squaresville.quick_leaf_decay then
-	for name, node in pairs(minetest.registered_nodes) do
-		if node.groups.leafdecay then
-			node.groups.leafdecay = 0
-			node.groups.qfc_leafdecay = 0
-		end
-	end
+  for name, node in pairs(minetest.registered_nodes) do
+    if node.groups.leafdecay then
+      node.groups.leafdecay = 0
+      node.groups.qfc_leafdecay = 0
+    end
+  end
 end
