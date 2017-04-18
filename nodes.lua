@@ -72,3 +72,89 @@ minetest.register_node("squaresville:thin_ice", {
   freezemelt = "default:water_source",
   paramtype = "light",
 })
+
+
+minetest.register_node("squaresville:plate_glass", {
+	description = "Plate Glass",
+	drawtype = "glasslike",
+	paramtype = "light",
+	sunlight_propagates = true,
+	tiles = {"squaresville_plate_glass.png"},
+	light_source = 1,
+	use_texture_alpha = true,
+	is_ground_content = false,
+	groups = {cracky = 3, level=1},
+	sounds = default.node_sound_stone_defaults(),
+})
+newnode = squaresville.clone_node("squaresville:plate_glass")
+newnode.tiles = {"squaresville_plate_glass_broken.png"}
+newnode.walkable = false
+minetest.register_node("squaresville:plate_glass_broken", newnode)
+minetest.register_alias("squaresville:glass_broken", "squaresville:plate_glass_broken")
+
+
+minetest.register_node("squaresville:floor_ceiling", {
+	description = "Floor/Ceiling",
+	tiles = {"squaresville_floor.png", "squaresville_ceiling.png", "default_stone.png"},
+	paramtype2 = "facedir",
+	groups = {cracky = 3, level=1, flammable = 3},
+	drop = "default:cobble",
+	drop = {
+		max_items = 3,
+		items = {
+			{
+				items = {"default:cobble",},
+				rarity = 1,
+			},
+			{
+				items = {"default:copper_ingot",},
+				rarity = 6,
+			},
+		},
+	},
+	sounds = default.node_sound_stone_defaults(),
+	is_ground_content = false,
+})
+newnode = squaresville.clone_node("squaresville:floor_ceiling")
+newnode.tiles = {"squaresville_floor.png^squaresville_broken_3.png", "squaresville_ceiling.png^squaresville_broken_3.png", "default_stone.png^squaresville_broken_3.png"}
+minetest.register_node("squaresville:floor_ceiling_broken", newnode)
+
+
+minetest.register_node("squaresville:roof", {
+	description = "Roof",
+	tiles = {"squaresville_tarmac.png", "squaresville_ceiling.png", "default_stone.png"},
+	paramtype2 = "facedir",
+	groups = {cracky = 3, level=1, flammable = 3},
+	drop = "default:cobble",
+	sounds = default.node_sound_stone_defaults(),
+	is_ground_content = false,
+})
+minetest.register_node("squaresville:roof_broken", {
+	description = "Roof",
+	tiles = {"squaresville_tarmac.png^squaresville_broken_3.png", "squaresville_ceiling.png^squaresville_broken_3.png", "default_stone.png"},
+	paramtype = "light",
+	paramtype2 = "facedir",
+	drawtype = "nodebox",
+	drop = "default:cobble",
+	node_box = { type = "fixed",
+		fixed = {
+			{0.5, 0.3, 0.5, -0.5, -0.5, -0.5}
+		}
+	},
+	sounds = default.node_sound_stone_defaults(),
+	groups = {cracky = 3, level=1, flammable = 3},
+	is_ground_content = false,
+})
+
+
+minetest.register_node("squaresville:sidewalk", {
+	description = "Sidewalk",
+	tiles = {"squaresville_sidewalk.png"},
+	groups = {cracky = 3, level=1, stone = 1},
+	drop = "default:cobble",
+	sounds = default.node_sound_stone_defaults(),
+	is_ground_content = false,
+})
+newnode = squaresville.clone_node("squaresville:sidewalk")
+newnode.tiles = {"squaresville_sidewalk.png^squaresville_broken_3.png"}
+minetest.register_node("squaresville:sidewalk_broken", newnode)

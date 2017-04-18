@@ -2,8 +2,10 @@
 -- Copyright Duane Robertson (duane@duanerobertson.com), 2017
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
-local block_size = 60
-local city_blocks = 7
+squaresville.block_size = 60
+
+local block_size = squaresville.block_size
+local city_blocks = 5
 local river_cutoff = 3
 local river_scale = 15
 local road_size = 7
@@ -11,7 +13,7 @@ local terrain_scale = 50
 local tree_spacing = 4
 local water_level_base = 1
 local water_level_town = -10
-local wild_size = 5
+local wild_size = 6
 
 local math_abs = math.abs
 local math_ceil = math.ceil
@@ -42,6 +44,12 @@ local river_scale_less_one = river_scale - 0.99
 local river_zone = river_scale + river_cutoff - 1
 local wild_limits = city_limits * wild_size
 
+squaresville.block_plus_road_size = block_plus_road_size
+squaresville.block_size = block_size
+squaresville.city_limits_plus_road_size = city_limits_plus_road_size
+squaresville.half_road_size = half_road_size
+squaresville.road_size = road_size
+squaresville.wild_limits = wild_limits
 
 do
   local biome_mod = {
@@ -410,7 +418,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
         if (biome.y_min or -31000) <= height and (biome.y_max or 31000) >= height then
           local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
 
-          if diff < biome_diff then
+          if diff < biome_diff and ((not town) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
             biome_name = name
             biome_diff = diff
           end

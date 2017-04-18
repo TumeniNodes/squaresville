@@ -79,6 +79,19 @@ squaresville.surround = function(node, data, area, ivm)
 end
 
 
+function squaresville.breaker(node)
+	--local sr = math.random(50)
+	--if sr <= squaresville.desolation then
+	--	return "air"
+	--elseif breakable[node] and squaresville.desolation > 0 and sr / 5 <= squaresville.desolation then
+	--	return string.gsub(node, ".*:", "squaresville:").."_broken"
+	--else
+	--	return node
+	--end
+  return node
+end
+
+
 dofile(squaresville.path .. "/nodes.lua")
 dofile(squaresville.path .. "/schematics.lua")
 dofile(squaresville.path .. "/mapgen.lua")

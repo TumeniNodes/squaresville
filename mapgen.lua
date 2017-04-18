@@ -52,6 +52,7 @@ local function generate(p_minp, p_maxp, seed)
 
   for fake_loop = 1, 1 do
     squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap)
+    squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
   end
   squaresville.last_heightmap = heightmap
 
@@ -73,6 +74,7 @@ end
 
 if squaresville.path then
   dofile(squaresville.path .. "/terrain.lua")
+  dofile(squaresville.path .. "/buildings.lua")
 end
 
 
