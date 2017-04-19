@@ -27,6 +27,7 @@ local node = setmetatable({}, {
     return t[k]
   end
 })
+squaresville.node = node
 
 
 local data = {}

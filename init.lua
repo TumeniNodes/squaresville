@@ -15,6 +15,9 @@ squaresville.world = minetest.get_worldpath()
 --end
 
 
+squaresville.desolation = 0
+
+
 if not minetest.set_mapgen_setting then
   return
 end
