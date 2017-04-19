@@ -8,6 +8,14 @@ local wild_limits = squaresville.wild_limits
 
 local math_abs = math.abs
 
+local seed = minetest.get_mapgen_setting('seed')
+local seed_int = 0
+while seed:len() > 0 do
+  seed_int = seed_int + tonumber(seed:sub(1,2))
+  seed = seed:sub(3)
+end
+squaresville.seed_int = seed_int
+
 
 function b_rand(s)
   local x
@@ -241,7 +249,7 @@ local function glass_and_steel(write, size)
 	end
 
 	local ra = hash_rand(2) - 1
-	floors = hash_rand(20) + 1
+	floors = hash_rand(50) + 1
 
 	for z = 1,size do
 		for x = 1,size do
@@ -453,7 +461,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           pos.z = pos.z - block_size + road_size - 2
         end
 
-        hash = string.format('%20.19f', b_rand(minetest.hash_node_position(pos)))
+        hash = string.format('%20.19f', b_rand(minetest.hash_node_position(pos) + seed_int))
         hash = hash:sub(3)
 
         -- This function burns lots of CPU time in order to save the
