@@ -4,7 +4,7 @@
 
 
 squaresville = {}
-squaresville.version = "1.0"
+squaresville.version = '1.0'
 squaresville.path = minetest.get_modpath(minetest.get_current_modname())
 squaresville.world = minetest.get_worldpath()
 
@@ -15,7 +15,7 @@ squaresville.world = minetest.get_worldpath()
 --end
 
 
-squaresville.desolation = 0
+squaresville.desolation = 5
 
 
 if not minetest.set_mapgen_setting then
@@ -23,7 +23,7 @@ if not minetest.set_mapgen_setting then
 end
 
 minetest.register_on_mapgen_init(function(mgparams)
-  minetest.set_mapgen_params({mgname="singlenode", flags="nolight"})
+  minetest.set_mapgen_params({mgname='singlenode', flags='nolight'})
 end)
 
 
@@ -67,13 +67,13 @@ squaresville.surround = function(node, data, area, ivm)
   --  in minetest, to avoid bubbles.
   for x1 = -1,1,2 do
     local n = data[ivm+x1] 
-    if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
+    if n == node['default:river_water_source'] or n == node['default:water_source'] or n == node['air'] then
       return false
     end
   end
   for z1 = -area.zstride,area.zstride,2*area.zstride do
     local n = data[ivm+z1] 
-    if n == node["default:river_water_source"] or n == node["default:water_source"] or n == node["air"] then
+    if n == node['default:river_water_source'] or n == node['default:water_source'] or n == node['air'] then
       return false
     end
   end
@@ -82,22 +82,46 @@ squaresville.surround = function(node, data, area, ivm)
 end
 
 
+-- This table looks up the names of broken nodes.
+local broken_name = setmetatable({}, {
+  __index = function(t, k)
+    if not (t and k and type(t) == 'table' and type(k) == 'string') then
+      return
+    end
+
+    t[k] = string.gsub(k, '.*:', 'squaresville:')..'_broken'
+    return t[k]
+  end
+})
+
+
 function squaresville.breaker(node)
-	--local sr = math.random(50)
-	--if sr <= squaresville.desolation then
-	--	return "air"
-	--elseif breakable[node] and squaresville.desolation > 0 and sr / 5 <= squaresville.desolation then
-	--	return string.gsub(node, ".*:", "squaresville:").."_broken"
-	--else
-	--	return node
-	--end
-  return node
+  if squaresville.desolation == 0 then
+    return node
+  end
+
+  local sr = math.random(50)
+  local goff = 1
+
+  if node == 'squaresville:light_panel' then
+    sr = 1
+  elseif node == 'squaresville:plate_glass' then
+    goff = 3
+  end
+
+  if sr <= squaresville.desolation * goff then
+    return 'air'
+  elseif minetest.registered_nodes[broken_name[node]] and sr <= squaresville.desolation * 5 then
+    return broken_name[node]
+  else
+    return node
+  end
 end
 
 
-dofile(squaresville.path .. "/nodes.lua")
-dofile(squaresville.path .. "/schematics.lua")
-dofile(squaresville.path .. "/mapgen.lua")
+dofile(squaresville.path .. '/nodes.lua')
+dofile(squaresville.path .. '/schematics.lua')
+dofile(squaresville.path .. '/mapgen.lua')
 
 
 ----------------------------------------------------------------------

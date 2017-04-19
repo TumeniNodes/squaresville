@@ -3,9 +3,14 @@ local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_limits_plus_road_size = squaresville.city_limits_plus_road_size
 local half_road_size = squaresville.half_road_size
+local node = squaresville.node
 local road_size = squaresville.road_size
 local wild_limits = squaresville.wild_limits
-local node = squaresville.node
+
+local csize
+local ruin_map = {}
+local ruin_noise
+local ruin_p = {offset = 25, scale = 15, seed = 4877, spread = {x = 240, y = 240, z = 240}, octaves = 4, persist = 1, lacunarity = 2.0}
 
 local math_abs = math.abs
 
@@ -430,6 +435,19 @@ end
 function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
   local size = block_size - road_size + 2
 
+	if not csize then
+		csize = vector.add(vector.subtract(maxp, minp), 1)
+	end
+
+  if not ruin_noise then
+    ruin_noise = minetest.get_perlin_map(ruin_p, {x=csize.x, y=csize.z})
+    if not ruin_noise then
+      return
+    end
+  end
+  
+  ruin_map = ruin_noise:get2dMap_flat({x=minp.x, y=minp.z})
+
   for bz = minp.z - 2 * block_size + 1, maxp.z + block_size - 1 do
     for bx = minp.x - 2 * block_size + 1, maxp.x + block_size - 1 do
       for non_loop = 1, 1 do
@@ -462,7 +480,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           local y = pos.y + ry
           local z = pos.z + rz
 
-          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z then
+          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and y <= ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)] then
             local ivm = area:index(x, y, z)
             data[ivm] = node[breaker(node_name)]
             p2data[ivm] = p2

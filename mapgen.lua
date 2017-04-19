@@ -16,7 +16,7 @@ minetest.get_mapgen_object = function(object)
 end
 
 
--- This tables looks up nodes that aren't already stored.
+-- This table looks up nodes that aren't already stored.
 local node = setmetatable({}, {
   __index = function(t, k)
     if not (t and k and type(t) == 'table') then

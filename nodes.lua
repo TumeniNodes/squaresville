@@ -5,6 +5,10 @@
 
 local newnode
 
+local darkening = 0
+if squaresville.desolation > 0 then
+  darkening = 100
+end
 
 minetest.register_node('squaresville:road', {
   description = 'Road',
@@ -90,6 +94,9 @@ minetest.register_node('squaresville:light_panel', {
   sounds = default.node_sound_stone_defaults(),
 })
 newnode = squaresville.clone_node('squaresville:light_panel')
+newnode = squaresville.clone_node("squaresville:light_panel")
+newnode.light_source = 0
+minetest.register_node("squaresville:light_panel_broken", newnode)
 
 
 -- ice, thin -- transparent
@@ -129,7 +136,7 @@ minetest.register_alias('squaresville:glass_broken', 'squaresville:plate_glass_b
 
 minetest.register_node('squaresville:floor_ceiling', {
   description = 'Floor/Ceiling',
-  tiles = {'squaresville_floor.png', 'squaresville_ceiling.png', 'default_stone.png'},
+  tiles = {'squaresville_floor.png^[colorize:#000000:'..darkening, 'squaresville_ceiling.png', 'default_stone.png'},
   paramtype2 = 'facedir',
   groups = {cracky = 3, level=1, flammable = 3},
   drop = 'default:cobble',
@@ -150,7 +157,7 @@ minetest.register_node('squaresville:floor_ceiling', {
   is_ground_content = false,
 })
 newnode = squaresville.clone_node('squaresville:floor_ceiling')
-newnode.tiles = {'squaresville_floor.png^squaresville_broken_3.png', 'squaresville_ceiling.png^squaresville_broken_3.png', 'default_stone.png^squaresville_broken_3.png'}
+newnode.tiles = {'squaresville_floor.png^[colorize:#000000:'..darkening..'^squaresville_broken_3.png', 'squaresville_ceiling.png^squaresville_broken_3.png', 'default_stone.png^squaresville_broken_3.png'}
 minetest.register_node('squaresville:floor_ceiling_broken', newnode)
 
 

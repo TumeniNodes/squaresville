@@ -5,6 +5,7 @@
 squaresville.block_size = 60
 
 local block_size = squaresville.block_size
+local breaker = squaresville.breaker
 local city_blocks = 5
 local river_cutoff = 3
 local river_scale = 15
@@ -435,7 +436,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       for y = minp.y-1, maxp.y+1 do
         if data[ivm] == node['air'] then
           if town and y == 1 and road_here then
-            data[ivm] = node['squaresville:road']
+            data[ivm] = node[breaker('squaresville:road')]
           elseif river < river_cutoff and y <= height and y > height - (biomes[biome_name].depth_riverbed or 0) then
             data[ivm] = node[biomes[biome_name].node_riverbed or 'default:sand']
           elseif y <= height and y > fill_1 then
