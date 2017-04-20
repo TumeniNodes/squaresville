@@ -9,13 +9,30 @@ squaresville.path = minetest.get_modpath(minetest.get_current_modname())
 squaresville.world = minetest.get_worldpath()
 
 
---squaresville.quick_leaf_decay = minetest.setting_getbool('squaresville_quick_leaf_decay')
---if squaresville.quick_leaf_decay == nil then
---	squaresville.quick_leaf_decay = false
---end
+squaresville.block_size = tonumber(minetest.setting_get('squaresville_block_size')) or 60
+if squaresville.block_size < 20 or squaresville.block_size > 200 then
+	squaresville.block_size = 60
+end
 
+squaresville.vacancies = tonumber(minetest.setting_get('squaresville_vacancies')) or 0
+if squaresville.vacancies < 0 or squaresville.vacancies > 10 then
+	squaresville.vacancies = 0
+end
 
-squaresville.desolation = 0
+squaresville.desolation = tonumber(minetest.setting_get('squaresville_desolation')) or 0
+if squaresville.desolation < 0 or squaresville.desolation > 10 then
+	squaresville.desolation = 0
+end
+
+squaresville.suburbs = tonumber(minetest.setting_get('squaresville_suburbs')) or 5
+if squaresville.suburbs < 0 or squaresville.suburbs > 10 then
+	squaresville.suburbs = 5
+end
+
+squaresville.light_panels = minetest.setting_getbool('squaresville_light_panels')
+if squaresville.light_panels == nil then
+	squaresville.light_panels = true
+end
 
 
 if not minetest.set_mapgen_setting then

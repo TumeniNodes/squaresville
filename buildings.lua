@@ -63,6 +63,10 @@ end
 
 
 local function lights(write, read, pos1, pos2)
+  if not squaresville.light_panels then
+    return
+  end
+
 	local y = math.max(pos2.y, pos1.y)
 	for z = pos1.z,pos2.z do
 		for x = pos1.x,pos2.x do

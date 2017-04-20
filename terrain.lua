@@ -2,8 +2,6 @@
 -- Copyright Duane Robertson (duane@duanerobertson.com), 2017
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
-squaresville.block_size = 60
-
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_blocks = 5
