@@ -15,12 +15,16 @@ squaresville.world = minetest.get_worldpath()
 --end
 
 
-squaresville.desolation = 5
+squaresville.desolation = 0
 
 
 if not minetest.set_mapgen_setting then
   return
 end
+
+
+local math_random = math.random
+
 
 minetest.register_on_mapgen_init(function(mgparams)
   minetest.set_mapgen_params({mgname='singlenode', flags='nolight'})
@@ -95,13 +99,30 @@ local broken_name = setmetatable({}, {
 })
 
 
-function squaresville.breaker(node)
+-- This table looks up the properties of nodes.
+local groups = setmetatable({}, {
+  __index = function(t, k)
+    if not (t and k and type(t) == 'table' and type(k) == 'string') then
+      return
+    end
+
+    t[k] = minetest.registered_items[k].groups
+    return t[k]
+  end
+})
+
+
+function squaresville.breaker(node, dry)
   if squaresville.desolation == 0 then
     return node
   end
 
-  local sr = math.random(50)
+  local sr = math_random(50)
   local goff = 1
+
+  if not dry then
+    dry = 50
+  end
 
   if node == 'squaresville:light_panel' then
     sr = 1
@@ -111,6 +132,28 @@ function squaresville.breaker(node)
 
   if sr <= squaresville.desolation * goff then
     return 'air'
+  elseif squaresville.cobble and sr <= squaresville.desolation * 3 and groups[node].cracky then
+    sr = math_random(700)
+    if sr == 1 then
+      sr = math_random(4)
+      if sr == 1 then
+        return 'default:stone_with_copper'
+      else
+        return 'default:stone_with_iron'
+      end
+    elseif sr <= 15 then
+      return 'squaresville:glowing_fungal_stone'
+    elseif sr <= 40 then
+      return 'default:gravel'
+    elseif sr <= 140 then
+      return 'default:dirt'
+    else
+      if sr <= dry * 10 then
+        return 'default:cobble'
+      else
+        return 'default:mossycobble'
+      end
+    end
   elseif minetest.registered_nodes[broken_name[node]] and sr <= squaresville.desolation * 5 then
     return broken_name[node]
   else

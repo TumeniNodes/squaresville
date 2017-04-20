@@ -15,6 +15,7 @@ minetest.register_node('squaresville:road', {
   tiles = {'squaresville_tarmac.png'},
   sounds = default.node_sound_stone_defaults(),
   groups = {cracky = 2, level = 1},
+  is_ground_content = false,
 })
 newnode = squaresville.clone_node('squaresville:road')
 newnode.tiles = {'squaresville_tarmac.png^[brighten'}
@@ -28,7 +29,8 @@ minetest.register_node('squaresville:road_broken', {
   node_box = { type = 'fixed',
   fixed = {
     {0.5, 0.3, 0.5, -0.5, -0.5, -0.5}
-  }
+  },
+  is_ground_content = false,
 },
 sounds = default.node_sound_stone_defaults(),
 groups = {cracky = 2, level = 1},
@@ -40,6 +42,7 @@ minetest.register_node('squaresville:road_yellow_line', {
   paramtype2 = 'facedir',
   sounds = default.node_sound_stone_defaults(),
   groups = {cracky = 2, level = 1},
+  is_ground_content = false,
 })
 
 --minetest.register_node('squaresville:concrete', {
@@ -52,6 +55,7 @@ minetest.register_node('squaresville:road_yellow_line', {
 --})
 newnode = squaresville.clone_node('default:stone')
 newnode.description = 'Concrete'
+newnode.is_ground_content = false
 newnode.drop = 'default:cobble'
 minetest.register_node('squaresville:concrete', newnode)
 newnode = squaresville.clone_node('squaresville:concrete')
@@ -92,6 +96,7 @@ minetest.register_node('squaresville:light_panel', {
   groups = {cracky = 3, level=1, oddly_breakable_by_hand = 1},
   on_place = minetest.rotate_and_place,
   sounds = default.node_sound_stone_defaults(),
+  is_ground_content = false,
 })
 newnode = squaresville.clone_node('squaresville:light_panel')
 newnode = squaresville.clone_node("squaresville:light_panel")
@@ -126,6 +131,7 @@ minetest.register_node('squaresville:plate_glass', {
   is_ground_content = false,
   groups = {cracky = 3, level=1},
   sounds = default.node_sound_stone_defaults(),
+  is_ground_content = false,
 })
 newnode = squaresville.clone_node('squaresville:plate_glass')
 newnode.tiles = {'squaresville_plate_glass_broken.png'}

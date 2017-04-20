@@ -345,6 +345,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
   heat_2_map = heat_2_noise:get2dMap_flat({x=minp.x, y=minp.z}, heat_2_map)
   humidity_1_map = humidity_1_noise:get2dMap_flat({x=minp.x, y=minp.z}, humidity_1_map)
   humidity_2_map = humidity_2_noise:get2dMap_flat({x=minp.x, y=minp.z}, humidity_2_map)
+  squaresville.humidity = humidity_1_map
 
   local tree_map = {}
   for z = minp.z, maxp.z, tree_spacing do
@@ -352,6 +353,8 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       tree_map[ (x + math_random(tree_spacing)) .. ',' .. (z + math_random(tree_spacing)) ] = true
     end
   end
+
+  squaresville.in_town = nil
 
   local index = 0
   for z = minp.z, maxp.z do
@@ -365,12 +368,17 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       local river = math_abs(river_map[index])
       local heat = heat_1_map[index] + heat_2_map[index]
       local humidity = (humidity_1_map[index] + humidity_2_map[index]) * (2.5 - (river / river_scale)) / 2
+      humidity_1_map[index] = humidity
 
       if (math_abs(x) + half_road_size) % wild_limits >= city_limits_plus_road_size and (math_abs(z) + half_road_size) % wild_limits >= city_limits_plus_road_size then
         town = false
         road_here = false
       elseif (math_abs(x) + half_road_size) % block_plus_road_size >= road_size and (math_abs(z) + half_road_size) % block_plus_road_size >= road_size then
         road_here = false
+      end
+
+      if town then
+        squaresville.in_town = true
       end
 
       -- Slope the terrain at the edges of town to let it blend better.
@@ -436,7 +444,11 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       for y = minp.y-1, maxp.y+1 do
         if data[ivm] == node['air'] then
           if town and y == 1 and road_here then
-            data[ivm] = node[breaker('squaresville:road')]
+            if squaresville.cobble then
+              data[ivm] = node[breaker('squaresville:road', 100 - squaresville.humidity[index] + y)]
+            else
+              data[ivm] = node[breaker('squaresville:road')]
+            end
           elseif river < river_cutoff and y <= height and y > height - (biomes[biome_name].depth_riverbed or 0) then
             data[ivm] = node[biomes[biome_name].node_riverbed or 'default:sand']
           elseif y <= height and y > fill_1 then

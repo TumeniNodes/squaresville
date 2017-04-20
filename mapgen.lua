@@ -53,7 +53,10 @@ local function generate(p_minp, p_maxp, seed)
 
   for fake_loop = 1, 1 do
     squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap)
-    squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
+
+    if minp.y < 800 and maxp.y > -25 then
+      squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
+    end
   end
   squaresville.last_heightmap = heightmap
 

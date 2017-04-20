@@ -480,9 +480,14 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           local y = pos.y + ry
           local z = pos.z + rz
 
-          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and y <= ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)] then
+          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (squaresville.desolation == 0 or y <= ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
             local ivm = area:index(x, y, z)
-            data[ivm] = node[breaker(node_name)]
+            if squaresville.cobble then
+              local h_i = (z - minp.z) * csize.x + (x - minp.x) + 1
+              data[ivm] = node[breaker(node_name, 100 - squaresville.humidity[h_i] + y)]
+            else
+              data[ivm] = node[breaker(node_name)]
+            end
             p2data[ivm] = p2
           end
         end
