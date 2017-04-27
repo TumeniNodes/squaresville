@@ -6,6 +6,7 @@ local interior_limit = squaresville.interior_limit
 local half_road_size = squaresville.half_road_size
 local max_height = 31000
 local node = squaresville.node
+local suburb_limits_plus_road_size = squaresville.suburb_limits_plus_road_size
 local road_size = squaresville.road_size
 local wild_limits = squaresville.wild_limits
 
@@ -161,30 +162,30 @@ local function gotham(write, read, size)
 
 	-- all this for gargoyles...
 	if hash_rand(2) == 1 and floors > 5 then
-		for z = 0,size+1 do
-			for x = 0,size+1 do
+		for z = -1,size+1 do
+			for x = -1,size+1 do
 				y = floors * 4
 				y = y - (y % 4)
-				if (x == 0 or x == size + 1) and z % 5 == 4 then
-					dir = (x == 0 and 18 or 12)
+				if (x == -1 or x == size + 1) and z % 5 == 3 and z > -1 then
+					dir = (x == -1 and 18 or 12)
 					write(x, y, z, 'squaresville:gargoyle', dir)
-				elseif (z == 0 or z == size + 1) and x % 5 == 4 then
-					dir = (z == 0 and 9 or 7)
+				elseif (z == -1 or z == size + 1) and x % 5 == 3 and x > -1 then
+					dir = (z == -1 and 9 or 7)
 					write(x, y, z, 'squaresville:gargoyle', dir)
 				end
 			end
 		end
 	end
 
-	for z = 1,size do
-		for x = 1,size do
-			develop = x > 1 and x < size and z > 1 and z < size
-			wall_x = x == 1 or x == size
-			wall_z = z == 1 or z == size
-			wall_x_2 = x == 2 or x == size - 1
-			wall_z_2 = z == 2 or z == size - 1
+	for z = 0,size do
+		for x = 0,size do
+			develop = x > 0 and x < size and z > 0 and z < size
+			wall_x = x == 0 or x == size
+			wall_z = z == 0 or z == size
+			wall_x_2 = x == 1 or x == size - 1
+			wall_z_2 = z == 1 or z == size - 1
 			for y = 0,(floors * 4) do
-				if y % 4 == 0 and x > 2 and z > 2 and x < size - 1 and z < size - 1 then
+				if y % 4 == 0 and x > 1 and z > 1 and x < size - 1 and z < size - 1 then
 					if floors * 4 - y < 4 then
 						write(x, y, z, 'squaresville:roof')
 					else
@@ -193,7 +194,7 @@ local function gotham(write, read, size)
 				elseif wall_x then
 					if y == 0 then
 						write(x, y, z, conc)
-					elseif z % 5 == 4 then
+					elseif z % 5 == 3 then
 						write(x, y, z, conc)
 					else
 						write(x, y, z, 'air')
@@ -201,9 +202,9 @@ local function gotham(write, read, size)
 				elseif wall_x_2 and develop then
 					if y == 0 then
 						write(x, y, z, conc)
-					elseif z % 12 == 3 and y <= 2 and y > 0 then
+					elseif z % 12 == 2 and y <= 2 and y > 0 then
 						write(x, y, z, 'air')
-					elseif y % 4 ~= 2 or z % 5 == 4 then
+					elseif y % 4 ~= 2 or z % 5 == 3 then
 						write(x, y, z, conc)
 					else
 						write(x, y, z, 'squaresville:plate_glass')
@@ -211,7 +212,7 @@ local function gotham(write, read, size)
 				elseif wall_z then
 					if y == 0 then
 						write(x, y, z, conc)
-					elseif x % 5 == 4 then
+					elseif x % 5 == 3 then
 						write(x, y, z, conc)
 					else
 						write(x, y, z, 'air')
@@ -219,9 +220,9 @@ local function gotham(write, read, size)
 				elseif wall_z_2 and develop then
 					if y == 0 then
 						write(x, y, z, conc)
-					elseif x % 12 == 3 and y <= 2 and y > 0 then
+					elseif x % 12 == 2 and y <= 2 and y > 0 then
 						write(x, y, z, 'air')
-					elseif y % 4 ~= 2 or x % 5 == 4 then
+					elseif y % 4 ~= 2 or x % 5 == 3 then
 						write(x, y, z, conc)
 					else
 						write(x, y, z, 'squaresville:plate_glass')
@@ -257,12 +258,12 @@ local function glass_and_steel(write, read, size)
 	local ra = hash_rand(2) - 1
 	floors = hash_rand(50) + 1
 
-	for z = 1,size do
-		for x = 1,size do
-			wall_x = x == 1 or x == size
-			wall_z = z == 1 or z == size
+	for z = 0,size do
+		for x = 0,size do
+			wall_x = x == 0 or x == size
+			wall_z = z == 0 or z == size
 			for y = 0,(floors * 4) do
-				if y % 4 == 0 and x > 1 and z > 1 and x < size and z < size then
+				if y % 4 == 0 and x > 0 and z > 0 and x < size and z < size then
 					if floors * 4 - y < 4 then
 						write(x, y, z, 'squaresville:roof')
 					else
@@ -459,24 +460,36 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
       for non_loop = 1, 1 do
         local dist_x = (bx + max_height + half_road_size) % wild_limits
         local dist_z = (bz + max_height + half_road_size) % wild_limits
-        if ((dist_x < interior_limit or dist_z < interior_limit) and not (dist_x < city_limits_plus_road_size and dist_z < city_limits_plus_road_size)) or ((dist_x >= city_limits_plus_road_size and dist_z >= city_limits_plus_road_size)) then
+
+        local town = true
+        local suburb = true
+
+        if (bx + max_height + half_road_size) % block_plus_road_size ~= road_size + 2 or (bz + max_height + half_road_size) % block_plus_road_size ~= road_size + 2 then
           break
-        elseif (bx + max_height + half_road_size) % block_plus_road_size == road_size + 2 and (bz + max_height + half_road_size) % block_plus_road_size == road_size + 2 then
-          -- nop
-        else
+        end
+
+        if dist_x >= suburb_limits_plus_road_size and dist_z >= suburb_limits_plus_road_size then
           break
+        elseif ((dist_x < interior_limit or dist_z < interior_limit) and not (dist_x < city_limits_plus_road_size and dist_z < city_limits_plus_road_size)) or (dist_x >= city_limits_plus_road_size and dist_z >= city_limits_plus_road_size) then
+          if dist_x < suburb_limits_plus_road_size and dist_z < suburb_limits_plus_road_size then
+            suburb = false
+          elseif dist_x >= suburb_limits_plus_road_size and (bx + max_height + half_road_size) % block_plus_road_size >= road_size then
+            town = false
+          elseif dist_z >= suburb_limits_plus_road_size and (bz + max_height + half_road_size) % block_plus_road_size >= road_size then
+            town = false
+          else
+            town = false
+          end
+        elseif (bx + max_height + half_road_size) % block_plus_road_size >= road_size and (bz + max_height + half_road_size) % block_plus_road_size >= road_size then
+          suburb = false
+        end
+
+        if not (suburb or town) then
+          print('error')
         end
 
         -- Don't use bx, bz from this point.
         local pos = {x=bx, y=1, z=bz}
-
-        --if pos.x < 0 then
-        --  pos.x = pos.x - block_size + road_size - 2
-        --end
-
-        --if pos.z < 0 then
-        --  pos.z = pos.z - block_size + road_size - 2
-        --end
 
         hash = string.format('%20.19f', b_rand(minetest.hash_node_position(pos) + seed_int))
         hash = hash:sub(3)
@@ -521,27 +534,25 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           end
         end
 
-        for z = pos.z - 2, pos.z + size + 2 do
-          for x = pos.x - 2, pos.x + size + 2 do
-            write(x - pos.x, 0, z - pos.z, 'squaresville:sidewalk')
+        if town then
+          local sr = hash_rand(13)
+          if sr <= 3 then
+            clear(1, 5)
+            gotham(write, read, size)
+          elseif sr <= 6 then
+            clear(1, 5)
+            glass_and_steel(write, read, size)
+          elseif sr <= 9 then
+            clear(1, 5)
+            simple(write, read, size)
+          elseif sr <= 12 then
+            clear(1, 5)
+            simple(write, read, size, true)
+          else
+            --park(write, dx, dy, dz)
           end
-        end
-
-        local sr = hash_rand(13)
-        if sr <= 3 then
-          clear(1, 5)
-          gotham(write, read, size)
-        elseif sr <= 6 then
-          clear(1, 5)
-          glass_and_steel(write, read, size)
-        elseif sr <= 9 then
-          clear(1, 5)
-          simple(write, read, size)
-        elseif sr <= 12 then
-          clear(1, 5)
-          simple(write, read, size, true)
-        else
-          --park(write, dx, dy, dz)
+        elseif suburb then
+          --
         end
       end
     end
