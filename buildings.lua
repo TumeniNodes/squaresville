@@ -2,7 +2,9 @@ local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_limits_plus_road_size = squaresville.city_limits_plus_road_size
+local interior_limit = squaresville.interior_limit
 local half_road_size = squaresville.half_road_size
+local max_height = 31000
 local node = squaresville.node
 local road_size = squaresville.road_size
 local wild_limits = squaresville.wild_limits
@@ -455,9 +457,11 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
   for bz = minp.z - 2 * block_size + 1, maxp.z + block_size - 1 do
     for bx = minp.x - 2 * block_size + 1, maxp.x + block_size - 1 do
       for non_loop = 1, 1 do
-        if (math_abs(bx) + half_road_size) % wild_limits >= city_limits_plus_road_size and (math_abs(bz) + half_road_size) % wild_limits >= city_limits_plus_road_size then
+        local dist_x = (bx + max_height + half_road_size) % wild_limits
+        local dist_z = (bz + max_height + half_road_size) % wild_limits
+        if ((dist_x < interior_limit or dist_z < interior_limit) and not (dist_x < city_limits_plus_road_size and dist_z < city_limits_plus_road_size)) or ((dist_x >= city_limits_plus_road_size and dist_z >= city_limits_plus_road_size)) then
           break
-        elseif (math_abs(bx) + half_road_size) % block_plus_road_size == road_size + 2 and (math_abs(bz) + half_road_size) % block_plus_road_size == road_size + 2 then
+        elseif (bx + max_height + half_road_size) % block_plus_road_size == road_size + 2 and (bz + max_height + half_road_size) % block_plus_road_size == road_size + 2 then
           -- nop
         else
           break
@@ -466,13 +470,13 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
         -- Don't use bx, bz from this point.
         local pos = {x=bx, y=1, z=bz}
 
-        if pos.x < 0 then
-          pos.x = pos.x - block_size + road_size - 2
-        end
+        --if pos.x < 0 then
+        --  pos.x = pos.x - block_size + road_size - 2
+        --end
 
-        if pos.z < 0 then
-          pos.z = pos.z - block_size + road_size - 2
-        end
+        --if pos.z < 0 then
+        --  pos.z = pos.z - block_size + road_size - 2
+        --end
 
         hash = string.format('%20.19f', b_rand(minetest.hash_node_position(pos) + seed_int))
         hash = hash:sub(3)

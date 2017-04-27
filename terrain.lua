@@ -4,10 +4,12 @@
 
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
-local city_blocks = 5
+local city_blocks = 3
+local max_height = 31000
 local river_cutoff = 3
 local river_scale = 15
 local road_size = 7
+local suburb_blocks = 2
 local terrain_scale = 50
 local tree_spacing = 4
 local water_level_base = 1
@@ -23,8 +25,11 @@ local math_random = math.random
 
 local attenuation = block_size
 local block_plus_road_size = road_size + block_size
-local city_limits = block_plus_road_size * city_blocks
-local city_limits_plus_road_size = (block_plus_road_size * city_blocks) + road_size
+local interior_limit = block_plus_road_size * suburb_blocks
+local city_limits = interior_limit + (block_plus_road_size * city_blocks)
+local city_limits_plus_road_size = city_limits + road_size
+local suburb_limits = city_limits + block_plus_road_size * suburb_blocks
+local suburb_limits_plus_road_size = suburb_limits + road_size
 local csize
 local ground_1_map = {}
 local ground_1_noise, river_noise
@@ -41,11 +46,12 @@ local river_map = {}
 local river_p = {offset = 0, scale = river_scale, seed = -6819, spread = {x = 451, y = 451, z = 451}, octaves = 3, persist = 1, lacunarity = 2.0}
 local river_scale_less_one = river_scale - 0.99
 local river_zone = river_scale + river_cutoff - 1
-local wild_limits = city_limits * wild_size
+local wild_limits = suburb_limits * wild_size
 
 squaresville.block_plus_road_size = block_plus_road_size
 squaresville.block_size = block_size
 squaresville.city_limits_plus_road_size = city_limits_plus_road_size
+squaresville.interior_limit = interior_limit
 squaresville.half_road_size = half_road_size
 squaresville.road_size = road_size
 squaresville.wild_limits = wild_limits
@@ -353,6 +359,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
   end
 
   squaresville.in_town = nil
+  squaresville.suburbs = nil
 
   local index = 0
   for z = minp.z, maxp.z do
@@ -361,31 +368,50 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       local ivm = area:index(x, minp.y - 1, z)
       local road_here = true
       local town = true
+      local suburb = true
       local height = 1
       local water_level = water_level_base
       local river = math_abs(river_map[index])
       local heat = heat_1_map[index] + heat_2_map[index]
+      local dist_x = (x + max_height + half_road_size) % wild_limits
+      local dist_z = (z + max_height + half_road_size) % wild_limits
       local humidity = (humidity_1_map[index] + humidity_2_map[index]) * (2.5 - (river / river_scale)) / 2
       humidity_1_map[index] = humidity
 
-      if (math_abs(x) + half_road_size) % wild_limits >= city_limits_plus_road_size and (math_abs(z) + half_road_size) % wild_limits >= city_limits_plus_road_size then
+      if dist_x >= suburb_limits_plus_road_size and dist_z >= suburb_limits_plus_road_size then
         town = false
+        suburb = false
         road_here = false
-      elseif (math_abs(x) + half_road_size) % block_plus_road_size >= road_size and (math_abs(z) + half_road_size) % block_plus_road_size >= road_size then
+      elseif ((dist_x < interior_limit or dist_z < interior_limit) and not (dist_x < city_limits_plus_road_size and dist_z < city_limits_plus_road_size)) or (dist_x >= city_limits_plus_road_size and dist_z >= city_limits_plus_road_size) then
+        if dist_x < suburb_limits_plus_road_size and dist_z < suburb_limits_plus_road_size then
+          town = true
+          suburb = false
+          road_here = false
+        elseif dist_x >= suburb_limits_plus_road_size and (x + max_height + half_road_size) % block_plus_road_size >= road_size then
+          town = false
+          road_here = false
+        elseif dist_z >= suburb_limits_plus_road_size and (z + max_height + half_road_size) % block_plus_road_size >= road_size then
+          road_here = false
+          town = false
+        else
+          town = false
+        end
+      elseif (x + max_height + half_road_size) % block_plus_road_size >= road_size and (z + max_height + half_road_size) % block_plus_road_size >= road_size then
+        suburb = false
         road_here = false
       end
 
-      if town then
+      if town or suburb then
         squaresville.in_town = true
       end
 
       -- Slope the terrain at the edges of town to let it blend better.
-      if not town then
-        local abs = {math_abs(x), math_abs(z)}
+      if not (town or suburb) then
+        local abs = {x + max_height, z + max_height}
         local att = {attenuation, attenuation}
 
         for i = 1, 2 do
-          local xz_off = (abs[i] + half_road_size - city_limits) % wild_limits
+          local xz_off = (abs[i] + half_road_size - suburb_limits) % wild_limits
 
           if xz_off < attenuation then
             att[i] = xz_off
@@ -411,7 +437,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
 
       if height > -river_cutoff and river < river_cutoff then
         height = math_floor(river - river_cutoff)
-      elseif town then
+      elseif town or suburb then
         water_level = water_level_town
       elseif height > water_level and river < river_zone then
         height = math_max(water_level, math_floor(height * math_max(water_level, river - river_cutoff) / river_scale_less_one))
@@ -425,7 +451,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
         if (biome.y_min or -31000) <= height and (biome.y_max or 31000) >= height then
           local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
 
-          if diff < biome_diff and ((not town) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
+          if diff < biome_diff and ((not (town or suburb)) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
             biome_name = name
             biome_diff = diff
           end
@@ -433,6 +459,9 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       end
 
       heightmap[index] = height
+      --if suburb and height > 2 or height < 0 and river >= river_zone then
+      --  print(height)
+      --end
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
       local fill_2 = fill_1 - (biomes[biome_name].depth_filler or 0)
@@ -441,7 +470,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
 
       for y = minp.y-1, maxp.y+1 do
         if data[ivm] == node['air'] then
-          if town and y == 1 and road_here then
+          if (town or suburb) and y == 1 and road_here then
             if squaresville.cobble then
               data[ivm] = node[breaker('squaresville:road', 100 - squaresville.humidity[index] + y)]
             else
