@@ -21,6 +21,9 @@ local ruin_p = {offset = 25, scale = 15, seed = 4877, spread = {x = 240, y = 240
 
 local math_abs = math.abs
 local math_floor = math.floor
+local math_max = math.max
+local math_min = math.min
+local math_sin = math.sin
 
 local seed = minetest.get_mapgen_setting('seed')
 local seed_int = 0
@@ -34,8 +37,8 @@ squaresville.seed_int = seed_int
 function b_rand(s)
   local x
   repeat
-    x = math.sin(s) * 10000
-    x = x - math.floor(x)
+    x = math_sin(s) * 10000
+    x = x - math_floor(x)
     s = s + 1
   until not (x < 0.15 or x > 0.9)
   return (x-0.15) * 1 / 0.75 
@@ -75,7 +78,7 @@ local function lights(write, read, pos1, pos2)
     return
   end
 
-	local y = math.max(pos2.y, pos1.y)
+	local y = math_max(pos2.y, pos1.y)
 	for z = pos1.z,pos2.z do
 		for x = pos1.x,pos2.x do
 			if (read(x, y, z) == node['air'] or read(x, y, z) == nil) and (read(x,y+1,z) == node['squaresville:floor_ceiling'] or read(x, y+1, z) == node['squaresville:roof']) and (x % 3 == 1 and z % 3 == 1) then
@@ -91,7 +94,7 @@ local function roof_box(write, size, off, sy, tex)
 		for x = off,size-off+1 do
 			for y = sy+1,sy+3 do
 				if z == off or z == size-off+1 or x == off or x == size-off+1 then
-					if y < sy + 3 and x == size - off + 1 and z == math.floor(size / 2) then
+					if y < sy + 3 and x == size - off + 1 and z == math_floor(size / 2) then
 						write(x, y, z, 'air')
 					else
 						write(x, y, z, tex)
@@ -110,9 +113,9 @@ local function stairwell(write, pos1, pos2, left)
 	local size, px, py, pz
 	size = (left and 0 or 2)
 
-	px = math.floor((pos2.x - pos1.x - 4) / 2)
-	py = math.min(pos2.y, pos1.y)
-	pz = math.floor((pos2.z - pos1.z - 6) / 2)
+	px = math_floor((pos2.x - pos1.x - 4) / 2)
+	py = math_min(pos2.y, pos1.y)
+	pz = math_floor((pos2.z - pos1.z - 6) / 2)
 	local walls = px > 2 and pz > 2
 
 	if walls then
@@ -240,7 +243,7 @@ local function gotham(write, read, size)
 	end
 
 	for f = 1,floors-ra do
-		stairwell(write, {x=2,y=((f-1)*4),z=2}, {x=size-1,y=(f*4-1),z=size-1}, (f / 2 == math.floor(f / 2)))
+		stairwell(write, {x=2,y=((f-1)*4),z=2}, {x=size-1,y=(f*4-1),z=size-1}, (f / 2 == math_floor(f / 2)))
 		lights(write, read, {x=3,y=((f-1)*4),z=3}, {x=size-2,y=(f*4-1),z=size-2})
 		--crates(data, {x=3,y=((f-1)*4+1),z=3}, {x=size-2,y=((f-1)*4+1),z=size-2})
 	end
@@ -300,7 +303,7 @@ local function glass_and_steel(write, read, size)
 	end
 
 	for f = 1,floors-ra do
-		stairwell(write, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size}, (f / 2 == math.floor(f / 2)))
+		stairwell(write, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size}, (f / 2 == math_floor(f / 2)))
 		lights(write, read, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size})
 		--crates(data, {x=1,y=((f-1)*4+1),z=1}, {x=size,y=((f-1)*4+1),z=size})
 	end
@@ -353,7 +356,7 @@ local function simple(write, read, size, slit)
 						write(x, y, z, 'air')
 					elseif slit and z % 2 == 0 and y % 4 > 1 then
 						write(x, y, z, 'squaresville:plate_glass')
-					elseif not slit and math.floor(z / 2) % 2 == 1 and y % 4 > 1 then
+					elseif not slit and math_floor(z / 2) % 2 == 1 and y % 4 > 1 then
 						write(x, y, z, 'squaresville:plate_glass')
 					else
 						write(x, y, z, conc)
@@ -363,7 +366,7 @@ local function simple(write, read, size, slit)
 						write(x, y, z, 'air')
 					elseif slit and x % 2 == 0 and y % 4 > 1 then
 						write(x, y, z, 'squaresville:plate_glass')
-					elseif not slit and math.floor(x / 2) % 2 == 1 and y % 4 > 1 then
+					elseif not slit and math_floor(x / 2) % 2 == 1 and y % 4 > 1 then
 						write(x, y, z, 'squaresville:plate_glass')
 					else
 						write(x, y, z, conc)
@@ -374,7 +377,7 @@ local function simple(write, read, size, slit)
 	end
 
 	for f = 1,floors-ra do
-		stairwell(write, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size}, (f / 2 == math.floor(f / 2)))
+		stairwell(write, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size}, (f / 2 == math_floor(f / 2)))
 		lights(write, read, {x=1,y=((f-1)*4),z=1}, {x=size,y=(f*4-1),z=size})
 		--crates(data, {x=1,y=((f-1)*4+1),z=1}, {x=size,y=((f-1)*4+1),z=size})
 	end
@@ -462,8 +465,8 @@ local function park(data, param, dx, dy, dz)
 		end
 	end
 
-	for qz = 1,math.floor(dz / 5) do
-		for qx = 1,math.floor(dx / 5) do
+	for qz = 1,math_floor(dz / 5) do
+		for qx = 1,math_floor(dx / 5) do
 			sr = math.random(5)
 			if sr == 1 then
 				simple_tree(data, qx * 5 - 2, qz * 5 - 2)
