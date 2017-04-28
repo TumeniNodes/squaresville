@@ -12,7 +12,7 @@ local road_size = 7
 local suburb_blocks = 2
 local terrain_scale = 50
 local tree_spacing = 4
-local water_level_base = 1
+local water_level_base = -2
 local water_level_town = -10
 local wild_size = 6
 
@@ -452,12 +452,15 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
         end
       end
 
+      local biome_height = height
+
       if height > -river_cutoff and river < river_cutoff then
-        height = math_floor(river - river_cutoff)
+        height = math_floor((river - river_cutoff) * 2)
       elseif town or suburb then
         water_level = water_level_town
       elseif height > water_level and river < river_zone then
         height = math_max(water_level, math_floor(height * math_max(water_level, river - river_cutoff) / river_scale_less_one))
+        biome_height = height
       end
 
       heat = heat - 20 * height / terrain_scale
@@ -465,7 +468,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       local biome_name
       local biome_diff = 1000
       for name, biome in pairs(biomes) do
-        if (biome.y_min or -31000) <= height and (biome.y_max or 31000) >= height then
+        if (biome.y_min or -31000) <= (biome_height - water_level_base) and (biome.y_max or 31000) >= (biome_height - water_level_base) then
           local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
 
           if diff < biome_diff and ((not (town or suburb)) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
@@ -476,9 +479,6 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       end
 
       heightmap[index] = height
-      --if suburb and height > 2 or height < 0 and river >= river_zone then
-      --  print(height)
-      --end
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
       local fill_2 = fill_1 - (biomes[biome_name].depth_filler or 0)
@@ -499,7 +499,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
             else
               data[ivm] = node[breaker('squaresville:sidewalk')]
             end
-          elseif river < river_cutoff and y <= height and y > height - (biomes[biome_name].depth_riverbed or 0) then
+          elseif river < river_cutoff and y < water_level_base and y <= height and y > height - (biomes[biome_name].depth_riverbed or 0) then
             data[ivm] = node[biomes[biome_name].node_riverbed or 'default:sand']
           elseif y <= height and y > fill_1 then
             data[ivm] = node[biomes[biome_name].node_top or 'default:stone']
