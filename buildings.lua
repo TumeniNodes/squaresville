@@ -1,3 +1,5 @@
+local max_river = 4
+
 local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
@@ -9,6 +11,8 @@ local node = squaresville.node
 local suburb_limits_plus_road_size = squaresville.suburb_limits_plus_road_size
 local road_size = squaresville.road_size
 local wild_limits = squaresville.wild_limits
+local river_p = squaresville.river_p
+local river_cutoff = squaresville.river_cutoff
 
 local csize
 local ruin_map = {}
@@ -16,6 +20,7 @@ local ruin_noise
 local ruin_p = {offset = 25, scale = 15, seed = 4877, spread = {x = 240, y = 240, z = 240}, octaves = 4, persist = 1, lacunarity = 2.0}
 
 local math_abs = math.abs
+local math_floor = math.floor
 
 local seed = minetest.get_mapgen_setting('seed')
 local seed_int = 0
@@ -380,6 +385,47 @@ local function simple(write, read, size, slit)
 end
 
 
+local function shacks(write, read, size, slit)
+	local develop, wall_x, wall_z, floors, conc, c
+
+	local ra = hash_rand(2) - 1
+  local yard = 28
+  local space = 6
+  local floors = 2
+  local plot = math_floor((size - 4) / yard)
+
+	for pz = 0, plot do
+		for px = 0, plot do
+      for z = 0, yard do
+        for x = 0, yard do
+          write(x + px * yard, 0, z + pz * yard, 'default:dirt_with_grass')
+        end
+      end
+
+      for z = space, yard - space do
+        for x = space, yard - space do
+          wall_x = x == space or x == yard - space
+          wall_z = z == space or z == yard - space
+          for y = 0,(floors * 4) do
+            if y % 4 == 0 and x > space and z > space and x < yard - space and z < yard - space then
+              if floors * 4 == y then
+                write(x + px * yard, y, z + pz * yard, 'default:wood')
+              else
+                write(x + px * yard, y, z + pz * yard, 'default:wood')
+              end
+            elseif wall_x then
+              write(x + px * yard, y, z + pz * yard, 'default:wood')
+            elseif wall_z then
+              write(x + px * yard, y, z + pz * yard, 'default:wood')
+            end
+          end
+        end
+			end
+		end
+	end
+end
+
+
 -- This is probably a bad idea...
 local function simple_tree(data, px, pz)
 	local r
@@ -534,7 +580,28 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           end
         end
 
-        if town then
+        local river = 0
+
+        for rz = pos.z, pos.z + size, 5 do
+          for rx = pos.x, pos.x + size, 5 do
+            local river_n = math_abs(minetest.get_perlin(river_p):get2d({x=rx, y=rz}))
+            if river_n < river_cutoff then
+              river = river + 1
+
+              if river > max_river then
+                break
+              end
+            end
+          end
+
+          if river > max_river then
+            break
+          end
+        end
+
+        if river > max_river then
+          -- nop
+        elseif town then
           local sr = hash_rand(13)
           if sr <= 3 then
             clear(1, 5)
@@ -552,7 +619,11 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
             --park(write, dx, dy, dz)
           end
         elseif suburb then
-          --
+          local sr = hash_rand(13)
+          if sr <= 13 then
+            clear(1, 5)
+            shacks(write, read, size, true)
+          end
         end
       end
     end
