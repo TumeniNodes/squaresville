@@ -72,12 +72,14 @@ squaresville.place_schematic = function(minp, maxp, data, p2data, area, node, po
         for y = 0, schem.size.y - 1 do
           local dy = pos.y - minp.y + y
           if not yslice[y] then
-            local prob = schem.data[isch].prob or schem.data[isch].param1 or 255
-            if prob >= math_random(255) and schem.data[isch].name ~= "air" then
-              data[ivm] = node[schem.data[isch].name]
+            if data[ivm] == node['air'] or data[ivm] == node['ignore'] then
+              local prob = schem.data[isch].prob or schem.data[isch].param1 or 255
+              if prob >= math_random(255) and schem.data[isch].name ~= "air" then
+                data[ivm] = node[schem.data[isch].name]
+              end
+              local param2 = schem.data[isch].param2 or 0
+              p2data[ivm] = param2
             end
-            local param2 = schem.data[isch].param2 or 0
-            p2data[ivm] = param2
 
             ivm = ivm + area.ystride
           end

@@ -2,18 +2,20 @@
 -- Copyright Duane Robertson (duane@duanerobertson.com), 2017
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
+local baseline = squaresville.baseline
+local extent_bottom = squaresville.extent_bottom
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_blocks = 3
-local max_height = 31000
+local max_depth = 31000
 local river_cutoff = 3
 local river_scale = 15
 local road_size = 7
 local suburb_blocks = 2
 local terrain_scale = 50
 local tree_spacing = 4
-local water_level_base = -2
-local water_level_town = -10
+local water_level_base = baseline - 2
+local water_level_town = baseline - 10
 local wild_size = 6
 
 local math_abs = math.abs
@@ -59,106 +61,6 @@ squaresville.road_size = road_size
 squaresville.suburb_limits_plus_road_size = suburb_limits_plus_road_size
 squaresville.wild_limits = wild_limits
 
-do
-  local biome_mod = {
-    cold_desert = { y_min = 1, },
-    cold_desert_ocean = { y_min = -31000, y_max = 0, },
-    coniferous_forest = { y_min = 1, },
-    coniferous_forest_ocean = { y_min = -31000, y_max = 0, },
-    deciduous_forest = {},
-    deciduous_forest_ocean = { y_min = -31000, },
-    deciduous_forest_shore = {},
-    desert = { y_min = 1, },
-    desert_ocean = { y_min = -31000, y_max = 0, },
-    glacier = { y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
-    glacier_ocean = { y_min = -31000, y_max = 0, },
-    grassland = { y_min = 1, },
-    grassland_ocean = { y_min = -31000, y_max = 0, },
-    icesheet = { y_min = 1, },
-    icesheet_ocean = { y_min = -31000, y_max = 0, },
-    rainforest = {},
-    rainforest_ocean = { y_min = -31000, },
-    rainforest_swamp = {},
-    sandstone_desert = { y_min = 1, },
-    sandstone_desert_ocean = { y_min = -31000, y_max = 0, },
-    savanna = {},
-    savanna_ocean = { y_min = -31000, },
-    savanna_shore = {},
-    snowy_grassland = { y_min = 1, },
-    snowy_grassland_ocean = { y_min = -31000, y_max = 0, },
-    taiga = { y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
-    taiga_ocean = { y_min = -31000, y_max = 0, },
-    --tundra = { node_river_water = "squaresville:thin_ice", },
-    --tundra_beach = { node_river_water = "squaresville:thin_ice", },
-    tundra = { node_top = 'default:snowblock', depth_top = 1,  y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
-    tundra_ocean = { y_min = -31000, y_max = 0, },
-  }
-  local rereg = {}
-
-  for n, bi in pairs(biome_mod) do
-    for i, rbi in pairs(minetest.registered_biomes) do
-      if rbi.name == n then
-        rereg[#rereg+1] = table.copy(rbi)
-        for j, prop in pairs(bi) do
-          rereg[#rereg][j] = prop
-        end
-      end
-    end
-  end
-
-  minetest.clear_registered_biomes()
-
-  for _, bi in pairs(rereg) do
-    minetest.register_biome(bi)
-  end
-
-  rereg = {}
-  for _, dec in pairs(minetest.registered_decorations) do
-    rereg[#rereg+1] = dec
-  end
-  minetest.clear_registered_decorations()
-  for _, dec in pairs(rereg) do
-    minetest.register_decoration(dec)
-  end
-  rereg = nil
-
-
-  minetest.register_biome({
-    name = "desertstone_grassland",
-    --node_dust = "",
-    node_top = "default:dirt_with_grass",
-    depth_top = 1,
-    node_filler = "default:dirt",
-    depth_filler = 1,
-    node_stone = "default:desert_stone",
-    node_riverbed = "default:sand",
-    depth_riverbed = 2,
-    --node_water_top = "",
-    --depth_water_top = ,
-    --node_water = "",
-    --node_river_water = "",
-    y_min = 6,
-    y_max = 31000,
-    heat_point = 80,
-    humidity_point = 55,
-  })
-
-
-  minetest.register_decoration({
-    deco_type = "simple",
-    place_on = {"default:dirt_with_grass"},
-    sidelen = 80,
-    fill_ratio = 0.1,
-    biomes = {"desertstone_grassland", },
-    y_min = 1,
-    y_max = 31000,
-    decoration = "default:junglegrass",
-  })
-end
-
-
-flowers.register_decorations()
-
 squaresville.decorations = {}
 
 do
@@ -191,7 +93,117 @@ do
   end
 end
 
-minetest.clear_registered_decorations()
+squaresville.biomes = {}
+local biomes = squaresville.biomes
+local biome_names = {}
+do
+  local biome_mod = {
+    cold_desert = { y_min = 1, },
+    cold_desert_ocean = { y_min = -max_depth, y_max = 0, },
+    coniferous_forest = { y_min = 1, },
+    coniferous_forest_ocean = { y_min = -max_depth, y_max = 0, },
+    deciduous_forest = {},
+    deciduous_forest_ocean = { y_min = -max_depth, },
+    deciduous_forest_shore = {},
+    desert = { y_min = 1, },
+    desert_ocean = { y_min = -max_depth, y_max = 0, },
+    --glacier = { y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
+    glacier = { y_min = 1, depth_water_top = 1, },
+    glacier_ocean = { y_min = -max_depth, y_max = 0, },
+    grassland = { y_min = 1, },
+    grassland_ocean = { y_min = -max_depth, y_max = 0, },
+    icesheet = { y_min = 1, },
+    icesheet_ocean = { y_min = -max_depth, y_max = 0, },
+    rainforest = {},
+    rainforest_ocean = { y_min = -max_depth, },
+    rainforest_swamp = {},
+    sandstone_desert = { y_min = 1, },
+    sandstone_desert_ocean = { y_min = -max_depth, y_max = 0, },
+    savanna = {},
+    savanna_ocean = { y_min = -max_depth, },
+    savanna_shore = {},
+    snowy_grassland = { y_min = 1, },
+    snowy_grassland_ocean = { y_min = -max_depth, y_max = 0, },
+    --taiga = { y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
+    taiga = { y_min = 1, depth_water_top = 1, },
+    taiga_ocean = { y_min = -max_depth, y_max = 0, },
+    --tundra = { node_river_water = "squaresville:thin_ice", },
+    --tundra_beach = { node_river_water = "squaresville:thin_ice", },
+    --tundra = { node_top = 'default:snowblock', depth_top = 1,  y_min = 1, node_water_top = 'squaresville:thin_ice', depth_water_top = 1, },
+    tundra = { node_top = 'default:snowblock', depth_top = 1,  y_min = 1, depth_water_top = 1, },
+    tundra_ocean = { y_min = -max_depth, y_max = 0, },
+    underground = {},
+  }
+
+  do
+    local tree_biomes = {}
+    tree_biomes["deciduous_forest"] = {"apple_tree", 'aspen_tree'}
+    tree_biomes["coniferous_forest"] = {"pine_tree"}
+    tree_biomes["taiga"] = {"pine_tree"}
+    tree_biomes["rainforest"] = {"jungle_tree"}
+    tree_biomes["rainforest_swamp"] = {"jungle_tree"}
+    tree_biomes["coniferous_forest"] = {"pine_tree"}
+    tree_biomes["savanna"] = {"acacia_tree"}
+
+    for i, obiome in pairs(minetest.registered_biomes) do
+      local biome = table.copy(obiome)
+      biome.special_tree_prob = 2 * 25
+
+      if string.match(biome.name, "^rainforest") then
+        biome.special_tree_prob = 0.8 * 25
+      end
+
+      if biome.name == "savanna" then
+        biome.special_tree_prob = 30 * 25
+      end
+
+      biome.special_trees = tree_biomes[biome.name]
+      biomes[biome.name] = biome
+      biome_names[#biome_names+1] = biome.name
+
+      for n, bi in pairs(biome_mod) do
+        for i, rbi in pairs(biomes) do
+          if rbi.name == n then
+            for j, prop in pairs(bi) do
+              biomes[i][j] = prop
+            end
+          end
+        end
+      end
+    end
+  end
+
+  biomes["desertstone_grassland"] = {
+    name = "desertstone_grassland",
+    --node_dust = "",
+    node_top = "default:dirt_with_grass",
+    depth_top = 1,
+    node_filler = "default:dirt",
+    depth_filler = 1,
+    node_stone = "default:desert_stone",
+    node_riverbed = "default:sand",
+    depth_riverbed = 2,
+    --node_water_top = "",
+    --depth_water_top = ,
+    --node_water = "",
+    --node_river_water = "",
+    y_min = 6,
+    y_max = max_depth,
+    heat_point = 80,
+    humidity_point = 55,
+  }
+
+  squaresville.decorations[#squaresville.decorations+1] = {
+    deco_type = "simple",
+    place_on = {"default:dirt_with_grass"},
+    sidelen = 80,
+    fill_ratio = 0.1,
+    biomes = {"desertstone_grassland", },
+    y_min = 1,
+    y_max = max_depth,
+    decoration = "default:junglegrass",
+  }
+end
 
 
 local function register_flower(name, desc, biomes, chance)
@@ -261,38 +273,6 @@ local function register_decoration(deco, place_on, biomes, chance)
     fill_ratio = chance,
     decoration = deco,
   }
-end
-
-
-squaresville.biomes = {}
-local biomes = squaresville.biomes
-local biome_names = {}
-do
-  local tree_biomes = {}
-  tree_biomes["deciduous_forest"] = {"apple_tree", 'aspen_tree'}
-  tree_biomes["coniferous_forest"] = {"pine_tree"}
-  tree_biomes["taiga"] = {"pine_tree"}
-  tree_biomes["rainforest"] = {"jungle_tree"}
-  tree_biomes["rainforest_swamp"] = {"jungle_tree"}
-  tree_biomes["coniferous_forest"] = {"pine_tree"}
-  tree_biomes["savanna"] = {"acacia_tree"}
-
-  for i, obiome in pairs(minetest.registered_biomes) do
-    local biome = table.copy(obiome)
-    biome.special_tree_prob = 2 * 25
-
-    if string.match(biome.name, "^rainforest") then
-      biome.special_tree_prob = 0.8 * 25
-    end
-
-    if biome.name == "savanna" then
-      biome.special_tree_prob = 30 * 25
-    end
-
-    biome.special_trees = tree_biomes[biome.name]
-    biomes[biome.name] = biome
-    biome_names[#biome_names+1] = biome.name
-  end
 end
 
 
@@ -377,10 +357,10 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       local water_level = water_level_base
       local river = math_abs(river_map[index])
       local heat = heat_1_map[index] + heat_2_map[index]
-      local dist_x = (x + max_height + half_road_size) % wild_limits
-      local dist_z = (z + max_height + half_road_size) % wild_limits
-      local dist_block_x = x + max_height + half_road_size
-      local dist_block_z = z + max_height + half_road_size
+      local dist_x = (x + max_depth + half_road_size) % wild_limits
+      local dist_z = (z + max_depth + half_road_size) % wild_limits
+      local dist_block_x = x + max_depth + half_road_size
+      local dist_block_z = z + max_depth + half_road_size
       local humidity = (humidity_1_map[index] + humidity_2_map[index]) * (2.5 - (river / river_scale)) / 2
       humidity_1_map[index] = humidity
 
@@ -424,7 +404,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
 
       -- Slope the terrain at the edges of town to let it blend better.
       if not (town or suburb or sidewalk_here) then
-        local abs = {x + max_height, z + max_height}
+        local abs = {x + max_depth, z + max_depth}
         local att = {attenuation, attenuation}
 
         for i = 1, 2 do
@@ -458,8 +438,8 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
         height = math_floor((river - river_cutoff) * 2)
       elseif town or suburb then
         water_level = water_level_town
-      elseif height > water_level and river < river_zone then
-        height = math_max(water_level, math_floor(height * math_max(water_level, river - river_cutoff) / river_scale_less_one))
+      elseif height > (water_level - baseline) and river < river_zone then
+        height = math_max((water_level - baseline), math_floor(height * math_max((water_level - baseline), river - river_cutoff) / river_scale_less_one))
         biome_height = height
       end
 
@@ -468,7 +448,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       local biome_name
       local biome_diff = 1000
       for name, biome in pairs(biomes) do
-        if (biome.y_min or -31000) <= (biome_height - water_level_base) and (biome.y_max or 31000) >= (biome_height - water_level_base) then
+        if (biome.y_min or -31000) <= (biome_height - (water_level_base - baseline)) and (biome.y_max or 31000) >= (biome_height - (water_level_base - baseline)) then
           local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
 
           if diff < biome_diff and ((not (town or suburb)) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
@@ -478,6 +458,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
         end
       end
 
+      height = height + baseline
       heightmap[index] = height
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
@@ -487,15 +468,15 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
 
       for y = minp.y-1, maxp.y+1 do
         if data[ivm] == node['air'] then
-          if (town or suburb) and y == 1 and road_here then
+          if (town or suburb) and y == baseline + 1 and road_here then
             if squaresville.cobble then
-              data[ivm] = node[breaker('squaresville:road', 100 - squaresville.humidity[index] + y)]
+              data[ivm] = node[breaker('squaresville:road', 100 - squaresville.humidity[index] + (y - baseline))]
             else
               data[ivm] = node[breaker('squaresville:road')]
             end
-          elseif y == 1 and sidewalk_here then
+          elseif y == baseline + 1 and sidewalk_here then
             if squaresville.cobble then
-              data[ivm] = node[breaker('squaresville:sidewalk', 100 - squaresville.humidity[index] + y)]
+              data[ivm] = node[breaker('squaresville:sidewalk', 100 - squaresville.humidity[index] + (y - baseline))]
             else
               data[ivm] = node[breaker('squaresville:sidewalk')]
             end

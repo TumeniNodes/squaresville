@@ -8,6 +8,14 @@ squaresville.version = '1.0'
 squaresville.path = minetest.get_modpath(minetest.get_current_modname())
 squaresville.world = minetest.get_worldpath()
 
+squaresville.baseline = 8000  -- the altitude of the squaresville "dimension"
+squaresville.extent_bottom = -500  -- how far down to make the squaresville
+squaresville.extent_top = 500  -- how far up to make it
+
+local baseline = squaresville.baseline
+local extent_bottom = squaresville.extent_bottom
+local extent_top = squaresville.extent_top
+
 
 squaresville.block_size = tonumber(minetest.setting_get('squaresville_block_size')) or 60
 if squaresville.block_size < 20 or squaresville.block_size > 200 then
@@ -41,11 +49,6 @@ end
 
 
 local math_random = math.random
-
-
-minetest.register_on_mapgen_init(function(mgparams)
-  minetest.set_mapgen_params({mgname='singlenode', flags='nolight'})
-end)
 
 
 -- Modify a node to add a group

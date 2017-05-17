@@ -4,16 +4,9 @@
 
 
 local DEBUG
-
-
-squaresville.real_get_mapgen_object = minetest.get_mapgen_object
-minetest.get_mapgen_object = function(object)
-  if object == 'heightmap' then
-    return table.copy(squaresville.last_heightmap)
-  else
-    return squaresville.real_get_mapgen_object(object)
-  end
-end
+local baseline = squaresville.baseline
+local extent_bottom = squaresville.extent_bottom
+local extent_top = squaresville.extent_top
 
 
 -- This table looks up nodes that aren't already stored.
@@ -41,6 +34,10 @@ local function generate(p_minp, p_maxp, seed)
   end
 
   local minp, maxp = p_minp, p_maxp
+  if maxp.y < baseline + extent_bottom or minp.y > baseline + extent_top then
+    return
+  end
+
   local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
   if not (vm and emin and emax) then
     return
@@ -54,11 +51,10 @@ local function generate(p_minp, p_maxp, seed)
   for fake_loop = 1, 1 do
     squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap)
 
-    if minp.y < 800 and maxp.y > -25 then
-      squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
+    if minp.y < baseline + 800 and maxp.y > baseline - 25 then
+      --squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
     end
   end
-  squaresville.last_heightmap = heightmap
 
 
   vm:set_data(data)
@@ -68,7 +64,7 @@ local function generate(p_minp, p_maxp, seed)
   if DEBUG then
     vm:set_lighting({day = 15, night = 15})
   else
-    vm:set_lighting({day = 15, night = 0}, minp, maxp)
+    vm:set_lighting({day = 0, night = 0}, minp, maxp)
     vm:calc_lighting()
   end
   vm:update_liquids()
