@@ -25,7 +25,6 @@ squaresville.node = node
 
 local data = {}
 local p2data = {}  -- vm rotation data buffer
-local heightmap = {}
 
 
 local function generate(p_minp, p_maxp, seed)
@@ -49,10 +48,10 @@ local function generate(p_minp, p_maxp, seed)
   local csize = vector.add(vector.subtract(maxp, minp), 1)
 
   for fake_loop = 1, 1 do
-    squaresville.terrain(minp, maxp, data, p2data, area, node, heightmap)
+    squaresville.terrain(minp, maxp, data, p2data, area, node)
 
     if minp.y < baseline + 800 and maxp.y > baseline - 25 then
-      --squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
+      squaresville.build(minp, maxp, data, p2data, area, node)
     end
   end
 

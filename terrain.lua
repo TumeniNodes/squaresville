@@ -289,7 +289,7 @@ local function get_decoration(biome_name)
 end
 
 
-squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
+squaresville.terrain = function(minp, maxp, data, p2data, area, node)
   if not (minp and maxp and data and p2data and area and node and type(data) == 'table' and type(p2data) == 'table') then
     return
   end
@@ -459,7 +459,6 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, heightmap)
       end
 
       height = height + baseline
-      heightmap[index] = height
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
       local fill_2 = fill_1 - (biomes[biome_name].depth_filler or 0)

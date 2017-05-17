@@ -1,5 +1,7 @@
 local max_river = 4
 
+local baseline = squaresville.baseline
+local extent_bottom = squaresville.extent_bottom
 local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
@@ -488,7 +490,7 @@ local function park(data, param, dx, dy, dz)
 end
 
 
-function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
+function squaresville.build(minp, maxp, data, p2data, area, node)
   local size = block_size - road_size + 2
 
 	if not csize then
@@ -538,7 +540,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
         end
 
         -- Don't use bx, bz from this point.
-        local pos = {x=bx, y=1, z=bz}
+        local pos = {x=bx, y=baseline + 1, z=bz}
 
         hash = string.format('%20.19f', b_rand(minetest.hash_node_position(pos) + seed_int))
         hash = hash:sub(3)
@@ -550,11 +552,11 @@ function squaresville.build(minp, maxp, data, p2data, area, node, heightmap)
           local y = pos.y + ry
           local z = pos.z + rz
 
-          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (squaresville.desolation == 0 or y <= ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
+          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (squaresville.desolation == 0 or y <= baseline + ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
             local ivm = area:index(x, y, z)
             if squaresville.cobble then
               local h_i = (z - minp.z) * csize.x + (x - minp.x) + 1
-              data[ivm] = node[breaker(node_name, 100 - squaresville.humidity[h_i] + y)]
+              data[ivm] = node[breaker(node_name, 100 - squaresville.humidity[h_i] + (y - baseline))]
             else
               data[ivm] = node[breaker(node_name)]
             end
