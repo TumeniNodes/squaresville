@@ -11,6 +11,7 @@ local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_limits_plus_road_size = squaresville.city_limits_plus_road_size
+local desolation = squaresville.desolation
 local interior_limit = squaresville.interior_limit
 local half_road_size = squaresville.half_road_size
 local max_height = 31000
@@ -461,7 +462,7 @@ local function park(data, param, dx, dy, dz)
 	for z = 1,dz do
 		for x = 1,dx do
 			data[x][0][z] = node('default:dirt_with_grass')
-			if squaresville.desolation > 0 then
+			if desolation > 0 then
 				sr = math.random(14)
 				if sr < 6 then
 					data[x][1][z] = node('default:grass_'..sr)
@@ -495,8 +496,13 @@ local function park(data, param, dx, dy, dz)
 end
 
 
-function squaresville.build(minp, maxp, data, p2data, area, node)
+function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
   local size = block_size - road_size + 2
+  if baseline == squaresville.baseline then
+    desolation = 0
+  elseif desolation == 0 then
+    desolation = 1
+  end
 
 	if not csize then
 		csize = vector.add(vector.subtract(maxp, minp), 1)
@@ -557,13 +563,13 @@ function squaresville.build(minp, maxp, data, p2data, area, node)
           local y = pos.y + ry
           local z = pos.z + rz
 
-          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (squaresville.desolation == 0 or y <= baseline + ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
+          if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (desolation == 0 or y <= baseline + ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
             local ivm = area:index(x, y, z)
             if squaresville.cobble then
               local h_i = (z - minp.z) * csize.x + (x - minp.x) + 1
-              data[ivm] = node[breaker(node_name, 100 - squaresville.humidity[h_i] + (y - baseline))]
+              data[ivm] = node[breaker(node_name, desolation, 100 - squaresville.humidity[h_i] + (y - baseline))]
             else
-              data[ivm] = node[breaker(node_name)]
+              data[ivm] = node[breaker(node_name, desolation)]
             end
             p2data[ivm] = p2
           end

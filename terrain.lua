@@ -2,11 +2,11 @@
 -- Copyright Duane Robertson (duane@duanerobertson.com), 2017
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
-local baseline = squaresville.baseline
 local extent_bottom = squaresville.extent_bottom
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_blocks = 3
+local desolation = squaresville.desolation
 local max_depth = 31000
 local river_cutoff = 3
 local river_scale = 15
@@ -14,8 +14,8 @@ local road_size = 7
 local suburb_blocks = 2
 local terrain_scale = 50
 local tree_spacing = 4
-local water_level_base = baseline - 2
-local water_level_town = baseline - 10
+local water_level_base = squaresville.baseline - 2
+local water_level_town = squaresville.baseline - 10
 local wild_size = 6
 
 local math_abs = math.abs
@@ -289,7 +289,7 @@ local function get_decoration(biome_name)
 end
 
 
-squaresville.terrain = function(minp, maxp, data, p2data, area, node)
+squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
   if not (minp and maxp and data and p2data and area and node and type(data) == 'table' and type(p2data) == 'table') then
     return
   end
@@ -303,6 +303,12 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node)
     if not csize then
       return
     end
+  end
+
+  if baseline == squaresville.baseline then
+    desolation = 0
+  elseif desolation == 0 then
+    desolation = 1
   end
 
   if not (ground_1_noise and river_noise) then
@@ -343,6 +349,8 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node)
 
   squaresville.in_town = nil
   squaresville.suburbs = nil
+  water_level_base = baseline - 2
+  water_level_town = baseline - 10
 
   local index = 0
   for z = minp.z, maxp.z do
@@ -469,15 +477,15 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node)
         if data[ivm] == node['air'] then
           if (town or suburb) and y == baseline + 1 and road_here then
             if squaresville.cobble then
-              data[ivm] = node[breaker('squaresville:road', 100 - squaresville.humidity[index] + (y - baseline))]
+              data[ivm] = node[breaker('squaresville:road', desolation, 100 - squaresville.humidity[index] + (y - baseline))]
             else
-              data[ivm] = node[breaker('squaresville:road')]
+              data[ivm] = node[breaker('squaresville:road', desolation)]
             end
           elseif y == baseline + 1 and sidewalk_here then
             if squaresville.cobble then
-              data[ivm] = node[breaker('squaresville:sidewalk', 100 - squaresville.humidity[index] + (y - baseline))]
+              data[ivm] = node[breaker('squaresville:sidewalk', desolation, 100 - squaresville.humidity[index] + (y - baseline))]
             else
-              data[ivm] = node[breaker('squaresville:sidewalk')]
+              data[ivm] = node[breaker('squaresville:sidewalk', desolation)]
             end
           elseif river < river_cutoff and y < water_level_base and y <= height and y > height - (biomes[biome_name].depth_riverbed or 0) then
             data[ivm] = node[biomes[biome_name].node_riverbed or 'default:sand']

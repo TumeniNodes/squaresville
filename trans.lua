@@ -3,7 +3,7 @@
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
 
-local function teleport(user)
+local function teleport(user, ruin)
 	if not (user) then
 		return
 	end
@@ -16,24 +16,28 @@ local function teleport(user)
 
 
   local newpos = {x=0,y=squaresville.baseline+2,z=0}
-  for r = 0, 10 do
-    local tdx = math.floor((pos.x + squaresville.wild_limits / 2) / squaresville.wild_limits) * squaresville.wild_limits - 0
-    local tdz = math.floor((pos.z + squaresville.wild_limits / 2) / squaresville.wild_limits) * squaresville.wild_limits - 0
-    if pos.y < squaresville.baseline + squaresville.extent_bottom or pos.y > squaresville.baseline + squaresville.extent_top then
-      newpos = {x=tdx, y=squaresville.baseline+2, z=tdz}
-    else
-      newpos = {x=tdx, y=120, z=tdz}
-    end
-
-    user:setpos(newpos)
-    print('Squaresville: '..name..' teleported to ('..newpos.x..','..newpos.y..','..newpos.z..')')
-
-    user:set_physics_override({gravity=0.1})
-
-    minetest.after(20, function()
-      user:set_physics_override({gravity=1})
-          end)
+  local wl = squaresville.wild_limits
+  local y = squaresville.baseline + 2
+  if ruin then
+    y = y + squaresville.dim_sep
   end
+
+  local tdx = math.floor((pos.x + wl / 2) / wl) * wl - 0
+  local tdz = math.floor((pos.z + wl / 2) / wl) * wl - 0
+  if pos.y < y + squaresville.extent_bottom or pos.y > y + squaresville.extent_top then
+    newpos = {x=tdx, y=y, z=tdz}
+  else
+    newpos = {x=tdx, y=120, z=tdz}
+  end
+
+  user:setpos(newpos)
+  print('Squaresville: '..name..' teleported to ('..newpos.x..','..newpos.y..','..newpos.z..')')
+
+  user:set_physics_override({gravity=0.1})
+
+  minetest.after(20, function()
+    user:set_physics_override({gravity=1})
+  end)
 end
 
 
@@ -46,7 +50,20 @@ minetest.register_craftitem('squaresville:key', {
   groups = {dig_immediate = 3},
   sounds = default.node_sound_stone_defaults(),
   on_use = function(itemstack, user, pointed_thing)
-    teleport(user)
+    teleport(user, false)
+  end,
+})
+
+minetest.register_craftitem('squaresville:broken_key', {
+  description = 'Broken Key To The City',
+  drawtype = "plantlike",
+  paramtype = "light",
+  tiles = {'squaresville_broken_key.png'},
+  inventory_image = 'squaresville_broken_key.png',
+  groups = {dig_immediate = 3},
+  sounds = default.node_sound_stone_defaults(),
+  on_use = function(itemstack, user, pointed_thing)
+    teleport(user, true)
   end,
 })
 

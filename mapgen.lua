@@ -33,7 +33,11 @@ local function generate(p_minp, p_maxp, seed)
   end
 
   local minp, maxp = p_minp, p_maxp
-  if maxp.y < baseline + extent_bottom or minp.y > baseline + extent_top then
+  baseline = squaresville.baseline
+  if maxp.y >= baseline + squaresville.dim_sep + extent_bottom and minp.y <= baseline + squaresville.dim_sep + extent_top then
+    baseline = baseline + squaresville.dim_sep
+    ruin = true
+  elseif maxp.y < baseline + extent_bottom or minp.y > baseline + extent_top then
     return
   end
 
@@ -48,10 +52,10 @@ local function generate(p_minp, p_maxp, seed)
   local csize = vector.add(vector.subtract(maxp, minp), 1)
 
   for fake_loop = 1, 1 do
-    squaresville.terrain(minp, maxp, data, p2data, area, node)
+    squaresville.terrain(minp, maxp, data, p2data, area, node, baseline)
 
     if minp.y < baseline + 800 and maxp.y > baseline - 25 then
-      squaresville.build(minp, maxp, data, p2data, area, node)
+      squaresville.build(minp, maxp, data, p2data, area, node, baseline)
     end
   end
 

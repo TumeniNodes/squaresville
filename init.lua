@@ -9,6 +9,7 @@ squaresville.path = minetest.get_modpath(minetest.get_current_modname())
 squaresville.world = minetest.get_worldpath()
 
 squaresville.baseline = 8000  -- the altitude of the squaresville "dimension"
+squaresville.dim_sep = 2000  -- how far up to the ruin "dimension"
 squaresville.extent_bottom = -500  -- how far down to make the squaresville
 squaresville.extent_top = 500  -- how far up to make it
 
@@ -132,8 +133,8 @@ local groups = setmetatable({}, {
 })
 
 
-function squaresville.breaker(node, dry)
-  if squaresville.desolation == 0 then
+function squaresville.breaker(node, desolation, dry)
+  if desolation == 0 then
     return node
   end
 
@@ -150,9 +151,9 @@ function squaresville.breaker(node, dry)
     goff = 3
   end
 
-  if sr <= squaresville.desolation * goff then
+  if sr <= desolation * goff then
     return 'air'
-  elseif squaresville.cobble and sr <= squaresville.desolation * 3 and groups[node].cracky then
+  elseif squaresville.cobble and sr <= desolation * 3 and groups[node].cracky then
     sr = math_random(700)
     if sr == 1 then
       sr = math_random(4)
@@ -174,7 +175,7 @@ function squaresville.breaker(node, dry)
         return 'default:mossycobble'
       end
     end
-  elseif minetest.registered_nodes[broken_name[node]] and sr <= squaresville.desolation * 5 then
+  elseif minetest.registered_nodes[broken_name[node]] and sr <= desolation * 5 then
     return broken_name[node]
   else
     return node
