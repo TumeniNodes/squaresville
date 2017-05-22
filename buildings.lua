@@ -1,3 +1,8 @@
+-- Squaresville buildings.lua
+-- Copyright Duane Robertson (duane@duanerobertson.com), 2017
+-- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
+
+
 local max_river = 4
 
 local baseline = squaresville.baseline

@@ -185,6 +185,7 @@ end
 dofile(squaresville.path .. '/nodes.lua')
 dofile(squaresville.path .. '/schematics.lua')
 dofile(squaresville.path .. '/mapgen.lua')
+dofile(squaresville.path .. '/trans.lua')
 
 
 ----------------------------------------------------------------------
