@@ -645,8 +645,7 @@ local function shacks(write, read, size, suburb_orient)
         end
       end
 
-      local house = squaresville.house_schematics[house_type]
-      house_type = (house_type + 1) % #squaresville.house_schematics + 1
+      local house = squaresville.house_schematics[(house_type + pz + px) % #squaresville.house_schematics + 1]
       for i = 1, #house.data do
         house.data[i].name = breaker(house.data[i].name, desolation)
       end
