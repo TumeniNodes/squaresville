@@ -4,15 +4,15 @@
 
 
 local function teleport(user, ruin)
-	if not (user) then
-		return
-	end
+  if not (user) then
+    return
+  end
 
-	local name = user:get_player_name()
-	local pos = user:getpos()
-	if not (name and pos and name ~= '' and type(name) == 'string') then
-		return
-	end
+  local name = user:get_player_name()
+  local pos = user:getpos()
+  if not (name and pos and name ~= '' and type(name) == 'string') then
+    return
+  end
 
 
   local newpos = {x=0,y=squaresville.baseline+2,z=0}

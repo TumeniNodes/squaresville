@@ -1,6 +1,3 @@
-# Size of a city block.
-squaresville_block_size (Block Size) int 60
-
 # Reset to remove lights (for less cpu load).
 squaresville_light_panels (Lighting Panels) bool true
 
@@ -11,7 +8,3 @@ squaresville_desolation (Desolation) int 0
 # The chance (in ten) that a given lot will be empty,
 # rather than occupied by a building.
 squaresville_vacancies (Vacancies) int 0
-
-# If a suburb block can exist, this is the chance in ten
-# that it will be created.
-squaresville_suburbs (Suburbs) int 5

@@ -233,10 +233,10 @@ minetest.register_node('squaresville:gargoyle', {
 
 
 minetest.register_node("squaresville:plaster", {
-	description = "Plaster",
-	tiles = {"default_desert_stone.png^[colorize:#8C8175:225"},
-	sounds = default.node_sound_stone_defaults(),
-	groups = {cracky = 3, level = 0, flammable = 2, oddly_breakable_by_hand = 1},
+  description = "Plaster",
+  tiles = {"default_desert_stone.png^[colorize:#8C8175:225"},
+  sounds = default.node_sound_stone_defaults(),
+  groups = {cracky = 3, level = 0, flammable = 2, oddly_breakable_by_hand = 1},
 })
 newnode = squaresville.clone_node("squaresville:plaster")
 newnode.tiles = {"(default_desert_stone.png^[colorize:#8C8175:225)^squaresville_broken_3_low.png"}
@@ -250,21 +250,10 @@ newnode.drop = "stairs:stair_stone"
 minetest.register_node("squaresville:concrete_stair", newnode)
 
 
-minetest.register_node("squaresville:light_panel", {
-	description = "Light Panel",
-	tiles = {"default_sandstone.png"},
-	light_source = 14,
-	paramtype = "light",
-	paramtype2 = "facedir",
-	drawtype = "nodebox",
-	node_box = { type = "fixed",
-		fixed = {
-			{-0.5, -0.5, -0.5, 0.5, -0.48, 0.5},
-		} },
-	groups = {cracky = 3, level=1, oddly_breakable_by_hand = 1, flammable = 3},
-	on_place = minetest.rotate_and_place,
-	sounds = default.node_sound_stone_defaults(),
+minetest.register_node("squaresville:carpet", {
+  description = "Carpet",
+  tiles = {"wool_blue.png", "default_stone.png", "default_stone.png"},
+  sounds = default.node_sound_stone_defaults(),
+  groups = {cracky = 2, level = 1},
 })
-newnode = squaresville.clone_node("squaresville:light_panel")
-newnode.light_source = 0
-minetest.register_node("squaresville:light_panel_broken", newnode)
+minetest.register_alias("squaresville:carpet_broken", "default:stone")

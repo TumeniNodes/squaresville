@@ -3,7 +3,7 @@
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
 local extent_bottom = squaresville.extent_bottom
-local block_size = squaresville.block_size
+local block_size = 60
 local breaker = squaresville.breaker
 local city_blocks = 3
 local desolation = squaresville.desolation
@@ -16,7 +16,7 @@ local terrain_scale = 50
 local tree_spacing = 4
 local water_level_base = squaresville.baseline - 2
 local water_level_town = squaresville.baseline - 10
-local wild_size = 6
+local wild_size = 6 --6
 
 local math_abs = math.abs
 local math_ceil = math.ceil
