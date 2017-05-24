@@ -112,10 +112,11 @@ for _, filename in pairs(minetest.get_dir_list(squaresville.path.."/schematics/"
   end
 end
 
+minetest.register_privilege('saveplot', {description = 'Allow user to save squaresville plots.'})
 minetest.register_chatcommand("saveplot", {
   params = "[filename]",
   description = "save the plot you're in as a schematic file",
-  --privs = {privs=true}, -- Require the "privs" privilege to run
+  privs = {saveplot=true}, -- Require the "saveplot" privilege to run
   func = function(name, param)
     local filename = param
     if not filename or filename == "" or string.find(filename, "[^%a%d_]") then
