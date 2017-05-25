@@ -926,7 +926,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
                   local index_2d = get_index(x - pos.x, z - pos.z)
                   if index_2d then
                     local biome_name = get_biome(index_2d, 1, true)
-                    if biomes[biome_name].special_trees and (biome_name ~= 'savanna' or math_random(2) == 1) then
+                    if biomes[biome_name].special_trees and (biome_name ~= 'savanna' or math_random(5) == 1) then
                       local tree_y
                       local ivm = area:index(x, baseline + 10, z)
                       for y = baseline + 10, baseline - 1, -1 do
