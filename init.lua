@@ -115,6 +115,10 @@ local broken_name = setmetatable({}, {
     end
 
     t[k] = string.gsub(k, '.*:', 'squaresville:')..'_broken'
+    if not minetest.registered_nodes[t[k]] then
+      t[k] = k
+    end
+
     return t[k]
   end
 })
@@ -132,6 +136,27 @@ local groups = setmetatable({}, {
   end
 })
 
+
+-- This table looks up nodes that aren't already stored.
+local node = setmetatable({}, {
+  __index = function(t, k)
+    if not (t and k and type(t) == 'table') then
+      return
+    end
+
+    t[k] = minetest.get_content_id(k)
+    return t[k]
+  end
+})
+squaresville.node = node
+
+
+local ground_nodes = {}
+ground_nodes[node['default:dirt']] = true
+ground_nodes[node['default:stone']] = true
+ground_nodes[node['default:dirt_with_grass']] = true
+ground_nodes[node['default:dirt_with_snow']] = true
+squaresville.ground_nodes = ground_nodes
 
 function squaresville.breaker(node, desolation, dry)
   if desolation == 0 then
@@ -151,7 +176,7 @@ function squaresville.breaker(node, desolation, dry)
     goff = 3
   end
 
-  if sr <= desolation * goff then
+  if not ground_nodes[node[node]] and sr <= desolation * goff then
     return 'air'
   elseif squaresville.cobble and sr <= desolation * 3 and groups[node].cracky then
     sr = math_random(700)
@@ -175,7 +200,7 @@ function squaresville.breaker(node, desolation, dry)
         return 'default:mossycobble'
       end
     end
-  elseif minetest.registered_nodes[broken_name[node]] and sr <= desolation * 5 then
+  elseif sr <= desolation * 5 then
     return broken_name[node]
   else
     return node
@@ -187,16 +212,3 @@ dofile(squaresville.path .. '/nodes.lua')
 dofile(squaresville.path .. '/schematics.lua')
 dofile(squaresville.path .. '/mapgen.lua')
 dofile(squaresville.path .. '/trans.lua')
-
-
-----------------------------------------------------------------------
-
-
-if squaresville.quick_leaf_decay then
-  for name, node in pairs(minetest.registered_nodes) do
-    if node.groups.leafdecay then
-      node.groups.leafdecay = 0
-      node.groups.qfc_leafdecay = 0
-    end
-  end
-end

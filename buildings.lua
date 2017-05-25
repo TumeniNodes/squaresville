@@ -6,21 +6,31 @@
 local max_river = 4
 
 local baseline = squaresville.baseline
-local extent_bottom = squaresville.extent_bottom
+local biomes = squaresville.biomes
 local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
 local breaker = squaresville.breaker
 local city_limits_plus_road_size = squaresville.city_limits_plus_road_size
+local cobble = squaresville.cobble
 local desolation = squaresville.desolation
-local interior_limit = squaresville.interior_limit
+local extent_bottom = squaresville.extent_bottom
+local get_biome = squaresville.get_biome
+local get_decoration = squaresville.get_decoration
+local ground_nodes = squaresville.ground_nodes
 local half_road_size = squaresville.half_road_size
+local humidity_1_map = squaresville.humidity_1_map
+local interior_limit = squaresville.interior_limit
 local max_height = 31000
 local node = squaresville.node
-local suburb_limits_plus_road_size = squaresville.suburb_limits_plus_road_size
-local road_size = squaresville.road_size
-local wild_limits = squaresville.wild_limits
-local river_p = squaresville.river_p
+local place_schematic = squaresville.place_schematic
 local river_cutoff = squaresville.river_cutoff
+local river_p = squaresville.river_p
+local road_size = squaresville.road_size
+local schematics = squaresville.schematics
+local suburb_limits_plus_road_size = squaresville.suburb_limits_plus_road_size
+local town_tree_thinning = 5
+local tree_map = squaresville.tree_map
+local wild_limits = squaresville.wild_limits
 
 local csize
 local ruin_map = {}
@@ -31,6 +41,7 @@ local math_abs = math.abs
 local math_floor = math.floor
 local math_max = math.max
 local math_min = math.min
+local math_random = math.random
 local math_sin = math.sin
 
 local seed = minetest.get_mapgen_setting('seed')
@@ -60,9 +71,6 @@ local function hash_rand(max)
   end
 
   local n = tonumber(hash:sub(1,2))
-  --print(hash:sub(1,2))
-  --print(hash:sub(3))
-  --print('n = '..n)
   hash = hash:sub(3)
 
   return (n % max) + 1
@@ -71,17 +79,15 @@ end
 
 local unbroken = true
 local unbreak_this = "house_with_pool"
-squaresville.house_schematics = {}
+local house_schematics = {}
 for _, filename in pairs(minetest.get_dir_list(squaresville.path.."/schematics/")) do
   if string.find(filename, "^[%a%d_]+%.house$") then
     local file = io.open(squaresville.path.."/schematics/"..filename, "rb")
     if file then
       local data = file:read("*all")
       file:close()
-      --print(data)
       local new_data = minetest.deserialize(data)
-      --print(dump(new_data))
-      squaresville.house_schematics[#squaresville.house_schematics+1] = new_data
+      house_schematics[#house_schematics+1] = new_data
       print("Squaresville: loaded "..filename)
       if not unbroken and string.find(filename, unbreak_this) then
         local new_data = data
@@ -98,7 +104,7 @@ for _, filename in pairs(minetest.get_dir_list(squaresville.path.."/schematics/"
           end
         end
         new_data = minetest.serialize(new_data)
-        squaresville.house_schematics[#squaresville.house_schematics] = new_data
+        house_schematics[#house_schematics] = new_data
 
         filename = minetest.get_worldpath().."/"..unbreak_this..".house"
         local file = io.open(filename, "wb")
@@ -111,6 +117,7 @@ for _, filename in pairs(minetest.get_dir_list(squaresville.path.."/schematics/"
     end
   end
 end
+squaresville.house_schematics = house_schematics
 
 minetest.register_privilege('saveplot', {description = 'Allow user to save squaresville plots.'})
 minetest.register_chatcommand("saveplot", {
@@ -187,7 +194,6 @@ minetest.register_chatcommand("saveplot", {
         rot = 1
       end
     end
-    --print(suburb_orient, px, pz, rot)
 
     local vm = minetest.get_voxel_manip()
     local emin, emax = vm:read_from_map(p1, p2)
@@ -260,7 +266,6 @@ minetest.register_chatcommand("saveplot", {
               local pos = {x=p1.x + x, y=p1.y, z=p1.z + z}
               local meta = minetest.get_meta(pos):to_table()
               if next(meta.inventory) or next(meta.fields) then
-                print(dump(meta))
                 node.meta = meta
               end
               schem.data[isch] = node
@@ -271,7 +276,6 @@ minetest.register_chatcommand("saveplot", {
           end
         end
       end
-      --print(dump(schem))
 
       if param == 'prep' then
         vm:set_data(data)
@@ -298,7 +302,7 @@ local function crates(data, pos1, pos2)
   local y = math.min(pos2.y, pos1.y)
   for z = pos1.z,pos2.z do
     for x = pos1.x,pos2.x do
-      if (data[x][y][z] == node['air'] or data[x][y][z] == nil) and math.random(1000) == 1 then
+      if (data[x][y][z] == node['air'] or data[x][y][z] == nil) and math_random(1000) == 1 then
         data[x][y][z] = node['squaresville:crate']
       end
     end
@@ -621,9 +625,26 @@ local function simple(write, read, size, slit)
 end
 
 
-local function shacks(write, read, size, suburb_orient)
+--squaresville.overgrow = function(write, read, size)
+--	local sr
+--	if desolation > 0 then
+--    for z = 0,size do
+--      for x = 0,size do
+--				sr = math_random(10)
+--				if sr < 6 then
+--          write(x, 1, z, "default:grass_"..sr)
+--				elseif sr == 6 then
+--          write(x, 1, z, "default:dry_shrub")
+--				end
+--			end
+--		end
+--	end
+--end
+
+
+local function shacks(write, read, get_index, size, suburb_orient)
   local rot
-  local house_type = hash_rand(#squaresville.house_schematics)
+  local house_type = hash_rand(#house_schematics)
   local yard = 28
   local space = 6
   local floors = 2
@@ -645,11 +666,7 @@ local function shacks(write, read, size, suburb_orient)
         end
       end
 
-      local house = squaresville.house_schematics[(house_type + pz + px) % #squaresville.house_schematics + 1]
-      for i = 1, #house.data do
-        house.data[i].name = breaker(house.data[i].name, desolation)
-      end
-
+      local house = house_schematics[(house_type + pz + px) % #house_schematics + 1]
       for z1 = 0, house.size.z - 1 do
         for x1 = 0, house.size.x - 1 do
           local x, z
@@ -664,19 +681,41 @@ local function shacks(write, read, size, suburb_orient)
           end
 
           local isch = z1 * house.size.y * house.size.x + x1 + 1
-          for y = 0, house.size.y - 1 do
-            local prob = house.data[isch].prob or house.data[isch].param1 or 255
-            if prob >= math.random(255) and house.data[isch].name ~= "air" then
-              local param2 = house.data[isch].param2 or 0
-              if suburb_orient == 1 then
-                param2 = (param2 + rot + 2) % 4
-              else
-                param2 = (param2 + rot + 0) % 4
+          local deco = nil
+          local last_node = nil
+          local index_2d = get_index(x + px * house.size.x - 2, z + pz * house.size.z - 2)
+
+          if index_2d then
+            local biome_name = get_biome(index_2d, 1, true)
+
+            for y = 0, house.size.y - 1 do
+              local prob = house.data[isch].prob or house.data[isch].param1 or 255
+              if prob >= math_random(255) and house.data[isch].name ~= "air" then
+                local param2 = house.data[isch].param2 or 0
+                if suburb_orient == 1 then
+                  param2 = (param2 + rot + 2) % 4
+                else
+                  param2 = (param2 + rot + 0) % 4
+                end
+                local name = string.gsub(house.data[isch].name, 'cityscape', 'squaresville')
+                local top = biomes[biome_name].node_top or 'default:dirt'
+                --if top == 'default:dirt_with_rainforest_litter' then
+                --  top = 'default:dirt_with_grass'
+                --end
+                if name == 'default:dirt_with_grass' then
+                  name = top
+                end
+                write(x + px * house.size.x - 2, y - 1, z + pz * house.size.z - 2, name, param2)
+                last_node = name
+              elseif desolation > 0 and ground_nodes[node[last_node]] and not deco then
+                deco = true
+                local decoration = get_decoration(biome_name)
+                if decoration then
+                  write(x + px * house.size.x - 2, y - 1, z + pz * house.size.z - 2, decoration)
+                end
               end
-              local name = string.gsub(house.data[isch].name, 'cityscape', 'squaresville')
-              write(x + px * house.size.x - 2, y - 1, z + pz * house.size.z - 2, name, param2)
+              isch = isch + house.size.x
             end
-            isch = isch + house.size.x
           end
         end
       end
@@ -688,7 +727,7 @@ end
 -- This is probably a bad idea...
 local function simple_tree(data, px, pz)
   local r
-  local h = math.random(4,6)
+  local h = math_random(4,6)
   for y = 1,h do
     data[px][y][pz] = node('default:tree')
   end
@@ -696,7 +735,7 @@ local function simple_tree(data, px, pz)
     for y = -2,2 do
       for x = -2,2 do
         r = math.sqrt(x ^ 2 + y ^ 2 + z ^ 2)
-        if data[x + px][y + h][z + pz] ~= node('default:tree') and math.random(4,6) > r * 2 then
+        if data[x + px][y + h][z + pz] ~= node('default:tree') and math_random(4,6) > r * 2 then
           data[x + px][y + h][z + pz] = node('default:leaves')
         end
       end
@@ -711,7 +750,7 @@ local function park(data, param, dx, dy, dz)
     for x = 1,dx do
       data[x][0][z] = node('default:dirt_with_grass')
       if desolation > 0 then
-        sr = math.random(14)
+        sr = math_random(14)
         if sr < 6 then
           data[x][1][z] = node('default:grass_'..sr)
         elseif sr == 6 then
@@ -723,20 +762,20 @@ local function park(data, param, dx, dy, dz)
 
   for qz = 1,math_floor(dz / 5) do
     for qx = 1,math_floor(dx / 5) do
-      sr = math.random(5)
+      sr = math_random(5)
       if sr == 1 then
         simple_tree(data, qx * 5 - 2, qz * 5 - 2)
       elseif sr == 2 then
         data[qx * 5 - 2][1][qz * 5 - 2] = node('squaresville:park_bench')
-        pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math.random(4) - 1)
+        pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math_random(4) - 1)
       elseif sr == 3 then
         data[qx * 5 - 2][1][qz * 5 - 2] = node('squaresville:swing_set')
-        pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math.random(4) - 1)
+        pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math_random(4) - 1)
       else
-        sr = math.random(30)
+        sr = math_random(30)
         if sr == 1 then
           data[qx * 5 - 2][1][qz * 5 - 2] = node('squaresville:doll')
-          pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math.random(4) - 1)
+          pstore(param, qx * 5 - 2, 1, qz * 5 - 2, math_random(4) - 1)
         end
       end
     end
@@ -815,9 +854,9 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
 
           if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z and (desolation == 0 or y <= baseline + ruin_map[((z - minp.z) * csize.x + (x - minp.x) + 1)]) then
             local ivm = area:index(x, y, z)
-            if squaresville.cobble then
+            if cobble then
               local h_i = (z - minp.z) * csize.x + (x - minp.x) + 1
-              data[ivm] = node[breaker(node_name, desolation, 100 - squaresville.humidity[h_i] + (y - baseline))]
+              data[ivm] = node[breaker(node_name, desolation, 100 - humidity_1_map[h_i] + (y - baseline))]
             else
               data[ivm] = node[breaker(node_name, desolation)]
             end
@@ -833,6 +872,15 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
           if x >= minp.x and x <= maxp.x and y >= minp.y and y <= maxp.y and z >= minp.z and z <= maxp.z then
             local ivm = area:index(x, y, z)
             return data[ivm]
+          end
+        end
+
+        local get_index = function(rx, rz)
+          local x = pos.x + rx
+          local z = pos.z + rz
+
+          if x >= minp.x and x <= maxp.x and z >= minp.z and z <= maxp.z then
+            return (z - minp.z) * csize.x + (x - minp.x) + 1
           end
         end
 
@@ -866,20 +914,55 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
         end
 
         if river > max_river then
-          -- nop
+          for k, v in pairs(tree_map) do
+            if math_random(town_tree_thinning) == 1 then
+              local x, z = string.match(k, '(-?%d+),(-?%d+)')
+              x = tonumber(x)
+              z = tonumber(z)
+              if not (x and z) then
+                print('Squaresville: Cannot parse '..dump(k))
+              else
+                if x > pos.x and x < pos.x + size and z > pos.z and z < pos.z + size then
+                  local index_2d = get_index(x - pos.x, z - pos.z)
+                  if index_2d then
+                    local biome_name = get_biome(index_2d, 1, true)
+                    if biomes[biome_name].special_trees and (biome_name ~= 'savanna' or math_random(2) == 1) then
+                      local tree_y
+                      local ivm = area:index(x, baseline + 10, z)
+                      for y = baseline + 10, baseline - 1, -1 do
+                        if data[ivm] == node['default:water_source'] then
+                          break
+                        elseif ground_nodes[data[ivm]] then
+                          tree_y = y
+                          break
+                        end
+
+                        ivm = ivm - area.ystride
+                      end
+
+                      if tree_y then
+                        tree_y = tree_y + (string.match(biome_name, '^rainforest') and 0 or 1)
+                        place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
         elseif town then
           local sr = hash_rand(13)
           if sr <= 3 then
-            clear(1, 5)
+            clear(1, 10)
             gotham(write, read, size)
           elseif sr <= 6 then
-            clear(1, 5)
+            clear(1, 10)
             glass_and_steel(write, read, size)
           elseif sr <= 9 then
-            clear(1, 5)
+            clear(1, 10)
             simple(write, read, size)
           elseif sr <= 12 then
-            clear(1, 5)
+            clear(1, 10)
             simple(write, read, size, true)
           else
             --park(write, dx, dy, dz)
@@ -887,8 +970,8 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
         elseif suburb then
           local sr = hash_rand(13)
           if sr <= 13 then
-            clear(1, 5)
-            shacks(write, read, size, suburb_orient)
+            clear(1, 10)
+            shacks(write, read, get_index, size, suburb_orient)
           end
         end
       end

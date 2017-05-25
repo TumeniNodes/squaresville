@@ -7,20 +7,7 @@ local DEBUG
 local baseline = squaresville.baseline
 local extent_bottom = squaresville.extent_bottom
 local extent_top = squaresville.extent_top
-
-
--- This table looks up nodes that aren't already stored.
-local node = setmetatable({}, {
-  __index = function(t, k)
-    if not (t and k and type(t) == 'table') then
-      return
-    end
-
-    t[k] = minetest.get_content_id(k)
-    return t[k]
-  end
-})
-squaresville.node = node
+local node = squaresville.node
 
 
 local data = {}
@@ -36,7 +23,6 @@ local function generate(p_minp, p_maxp, seed)
   baseline = squaresville.baseline
   if maxp.y >= baseline + squaresville.dim_sep + extent_bottom and minp.y <= baseline + squaresville.dim_sep + extent_top then
     baseline = baseline + squaresville.dim_sep
-    ruin = true
   elseif maxp.y < baseline + extent_bottom or minp.y > baseline + extent_top then
     return
   end
@@ -72,6 +58,9 @@ local function generate(p_minp, p_maxp, seed)
   end
   vm:update_liquids()
   vm:write_to_map()
+
+  -- Clear any tables that won't be reused.
+  squaresville.tree_map = nil
 end
 
 

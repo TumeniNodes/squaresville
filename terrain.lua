@@ -12,9 +12,12 @@ local river_cutoff = 3
 local river_scale = 15
 local road_size = 7
 local suburb_blocks = 2
+local suburb_humidity = 60
 local terrain_scale = 50
+local tree_map = {}
 local tree_spacing = 4
-local water_level_base = squaresville.baseline - 2
+local water_level_base_mod = -2
+local water_level_base = squaresville.baseline + water_level_base_mod
 local water_level_town = squaresville.baseline - 10
 local wild_size = 6 --6
 
@@ -53,12 +56,18 @@ local wild_limits = suburb_limits * wild_size
 squaresville.block_plus_road_size = block_plus_road_size
 squaresville.block_size = block_size
 squaresville.city_limits_plus_road_size = city_limits_plus_road_size
-squaresville.interior_limit = interior_limit
 squaresville.half_road_size = half_road_size
-squaresville.river_p = river_p
+squaresville.heat_1_map = heat_1_map
+squaresville.heat_2_map = heat_2_map
+squaresville.humidity_1_map = humidity_1_map
+squaresville.humidity_2_map = humidity_2_map
+squaresville.interior_limit = interior_limit
 squaresville.river_cutoff = river_cutoff
+squaresville.river_p = river_p
 squaresville.road_size = road_size
 squaresville.suburb_limits_plus_road_size = suburb_limits_plus_road_size
+squaresville.suburb_humidity = suburb_humidity
+squaresville.tree_map = tree_map
 squaresville.wild_limits = wild_limits
 
 squaresville.decorations = {}
@@ -287,6 +296,39 @@ local function get_decoration(biome_name)
     end
   end
 end
+squaresville.get_decoration = get_decoration
+
+
+local function get_biome(index, height, intown)
+  if not (index and height) then
+    return
+  end
+
+  local heat = heat_1_map[index] + heat_2_map[index]
+  heat = heat - 20 * height / terrain_scale
+  local humidity
+  if intown and desolation == 0 then
+    humidity = suburb_humidity
+  else
+    humidity = humidity_1_map[index] + humidity_2_map[index]
+  end
+
+  local biome_name
+  local biome_diff = 1000
+  for name, biome in pairs(biomes) do
+    if (biome.y_min or -31000) <= (height - water_level_base_mod) and (biome.y_max or 31000) >= (height - water_level_base_mod) then
+      local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
+
+      if diff < biome_diff and (not intown or name ~= 'rainforest') then
+        biome_name = name
+        biome_diff = diff
+      end
+    end
+  end
+
+  return biome_name
+end
+squaresville.get_biome = get_biome
 
 
 squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
@@ -338,9 +380,10 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
   heat_2_map = heat_2_noise:get2dMap_flat({x=minp.x, y=minp.z}, heat_2_map)
   humidity_1_map = humidity_1_noise:get2dMap_flat({x=minp.x, y=minp.z}, humidity_1_map)
   humidity_2_map = humidity_2_noise:get2dMap_flat({x=minp.x, y=minp.z}, humidity_2_map)
-  squaresville.humidity = humidity_1_map
 
-  local tree_map = {}
+  for k, v in pairs(tree_map) do
+    tree_map[k] = nil
+  end
   for z = minp.z, maxp.z, tree_spacing do
     for x = minp.x, maxp.x, tree_spacing do
       tree_map[ (x + math_random(tree_spacing)) .. ',' .. (z + math_random(tree_spacing)) ] = true
@@ -408,6 +451,10 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
 
       if town or suburb then
         squaresville.in_town = true
+
+        if desolation == 0 then
+          humidity = suburb_humidity
+        end
       end
 
       -- Slope the terrain at the edges of town to let it blend better.
@@ -451,21 +498,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
         biome_height = height
       end
 
-      heat = heat - 20 * height / terrain_scale
-
-      local biome_name
-      local biome_diff = 1000
-      for name, biome in pairs(biomes) do
-        if (biome.y_min or -31000) <= (biome_height - (water_level_base - baseline)) and (biome.y_max or 31000) >= (biome_height - (water_level_base - baseline)) then
-          local diff = math_abs(biome.heat_point - heat) + math_abs(biome.humidity_point - humidity)
-
-          if diff < biome_diff and ((not (town or suburb)) or name == 'grassland' or name == 'snowy_grassland' or name == 'grassland_ocean' or name == 'snowy_grassland_ocean') then
-            biome_name = name
-            biome_diff = diff
-          end
-        end
-      end
-
+      local biome_name = get_biome(index, biome_height, (suburb or town))
       height = height + baseline
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
@@ -511,7 +544,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
       end
 
       if deco then
-        if biomes[biome_name].special_trees and tree_map[ x .. ',' .. z ] and (biome_name ~= 'savanna' or math.random(20) == 1) then
+        if (not (town or suburb)) and biomes[biome_name].special_trees and tree_map[ x .. ',' .. z ] and (biome_name ~= 'savanna' or math.random(20) == 1) then
           local tree_y = deco + (string.match(biome_name, '^rainforest') and 0 or 1)
           squaresville.place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, squaresville.schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
         else
