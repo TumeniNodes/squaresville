@@ -134,8 +134,8 @@ minetest.register_chatcommand("saveplot", {
     filename = minetest.get_worldpath().."/"..filename..".house"
     local pos = minetest.get_player_by_name(name):getpos()
 
-    local dist_x = (pos.x + max_height + half_road_size) % wild_limits
-    local dist_z = (pos.z + max_height + half_road_size) % wild_limits
+    local dist_x = math_floor(pos.x + max_height + half_road_size) % wild_limits
+    local dist_z = math_floor(pos.z + max_height + half_road_size) % wild_limits
 
     local suburb = true
     local suburb_orient = 0
@@ -189,9 +189,9 @@ minetest.register_chatcommand("saveplot", {
       end
     else
       if px == 0 then
-        rot = 3
-      else
         rot = 1
+      else
+        rot = 3
       end
     end
 
@@ -230,11 +230,11 @@ minetest.register_chatcommand("saveplot", {
           if rot == 0 then
             x, z = x1, z1
           elseif rot == 1 then
-            x, z = size - z1 - 1, x1
+            x, z = z1, size - x1 - 1
           elseif rot == 2 then
             x, z = size - x1 - 1, size - z1 - 1
           elseif rot == 3 then
-            x, z = z1, size - x1 - 1
+            x, z = size - z1 - 1, x1
           end
 
           local isch = z1 * height * size + x1 + 1
@@ -260,8 +260,9 @@ minetest.register_chatcommand("saveplot", {
               if node.name == "air" then
                 node.prob = 0
               end
-              if p2data[ivm] ~= 0 then
-                node.param2 = p2data[ivm]
+              node.param2 = p2data[ivm] or 0
+              if node.param2 < 4 then
+                node.param2 = ((node.param2 % 4) - rot) % 4
               end
               local pos = {x=p1.x + x, y=p1.y, z=p1.z + z}
               local meta = minetest.get_meta(pos):to_table()
@@ -660,24 +661,24 @@ local function shacks(write, read, get_index, size, suburb_orient)
         end
       else
         if px == 0 then
-          rot = 3
-        else
           rot = 1
+        else
+          rot = 3
         end
       end
 
-      local house = house_schematics[(house_type + pz + px) % #house_schematics + 1]
+      local house = house_schematics[(house_type + pz * 2 + px) % #house_schematics + 1]
       for z1 = 0, house.size.z - 1 do
         for x1 = 0, house.size.x - 1 do
           local x, z
           if rot == 0 then
             x, z = x1, z1
           elseif rot == 1 then
-            x, z = house.size.z - z1 - 1, x1
+            x, z = z1, house.size.x - x1 - 1
           elseif rot == 2 then
             x, z = house.size.x - x1 - 1, house.size.z - z1 - 1
           elseif rot == 3 then
-            x, z = z1, house.size.x - x1 - 1
+            x, z = house.size.z - z1 - 1, x1
           end
 
           local isch = z1 * house.size.y * house.size.x + x1 + 1
@@ -692,10 +693,10 @@ local function shacks(write, read, get_index, size, suburb_orient)
               local prob = house.data[isch].prob or house.data[isch].param1 or 255
               if prob >= math_random(255) and house.data[isch].name ~= "air" then
                 local param2 = house.data[isch].param2 or 0
-                if suburb_orient == 1 then
-                  param2 = (param2 + rot + 2) % 4
-                else
-                  param2 = (param2 + rot + 0) % 4
+                if param2 < 4 then
+                  param2 = ((param2 % 4) + rot) % 4
+                elseif house.data[isch].name ~= 'squaresville:light_panel' then
+                  --print(house.data[isch].name, param2)
                 end
                 local name = string.gsub(house.data[isch].name, 'cityscape', 'squaresville')
                 local top = biomes[biome_name].node_top or 'default:dirt'
@@ -807,8 +808,8 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
   for bz = minp.z - 2 * block_size + 1, maxp.z + block_size - 1 do
     for bx = minp.x - 2 * block_size + 1, maxp.x + block_size - 1 do
       for non_loop = 1, 1 do
-        local dist_x = (bx + max_height + half_road_size) % wild_limits
-        local dist_z = (bz + max_height + half_road_size) % wild_limits
+        local dist_x = math_floor(bx + max_height + half_road_size) % wild_limits
+        local dist_z = math_floor(bz + max_height + half_road_size) % wild_limits
 
         local town = true
         local suburb = true
@@ -836,7 +837,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
         end
 
         if not (suburb or town) then
-          print('error')
+          print('Squaresville: Failed attempt to build in the wild.')
         end
 
         -- Don't use bx, bz from this point.
@@ -860,7 +861,7 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
             else
               data[ivm] = node[breaker(node_name, desolation)]
             end
-            p2data[ivm] = p2
+            p2data[ivm] = p2 or 0
           end
         end
 

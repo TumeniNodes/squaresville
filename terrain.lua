@@ -8,7 +8,7 @@ local breaker = squaresville.breaker
 local city_blocks = 3
 local desolation = squaresville.desolation
 local max_depth = 31000
-local river_cutoff = 3
+local river_cutoff = 3  -- 3
 local river_scale = 15
 local road_size = 7
 local suburb_blocks = 2
@@ -19,7 +19,7 @@ local tree_spacing = 4
 local water_level_base_mod = -2
 local water_level_base = squaresville.baseline + water_level_base_mod
 local water_level_town = squaresville.baseline - 10
-local wild_size = 6 --6
+local wild_size = 6  --6
 
 local math_abs = math.abs
 local math_ceil = math.ceil
