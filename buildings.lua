@@ -53,6 +53,24 @@ end
 squaresville.seed_int = seed_int
 
 
+local drotn = {[0]=3, 0, 1, 2, 16, 17, 18, 19, 12, 13, 14, 15, 4, 5, 6, 7, 8, 9, 10, 11, 23, 20, 21, 22}
+local drotp = {}
+for i = 0, 23 do
+  for j = 0, 23 do
+    if drotn[j] == i then
+      drotp[i] = j
+      break
+    end
+  end
+end
+-- 7, 19, 11, 15
+-- 9, 13, 5, 17
+-- 15, 11
+-- 17, 5
+--print(dump(drotp))
+--local drotp = {[0]=1, 2, 3, 0, 12, 13, 14, 15, 16, 17, 18, 19, 8, 9, 10, 11, 4, 5, 6, 7, 21, 22, 23, 20}
+
+
 function b_rand(s)
   local x
   repeat
@@ -194,6 +212,7 @@ minetest.register_chatcommand("saveplot", {
         rot = 3
       end
     end
+    print('rotation: '..rot)
 
     local vm = minetest.get_voxel_manip()
     local emin, emax = vm:read_from_map(p1, p2)
@@ -263,7 +282,14 @@ minetest.register_chatcommand("saveplot", {
               node.param2 = p2data[ivm] or 0
               if node.param2 < 4 then
                 node.param2 = ((node.param2 % 4) - rot) % 4
+              else
+                local dir = node.param2 % 24
+                for i = 1, rot do
+                  dir = drotn[dir]
+                end
+                node.param2 = dir
               end
+
               local pos = {x=p1.x + x, y=p1.y, z=p1.z + z}
               local meta = minetest.get_meta(pos):to_table()
               if next(meta.inventory) or next(meta.fields) then
@@ -287,6 +313,7 @@ minetest.register_chatcommand("saveplot", {
         local file = io.open(filename, "wb")
         if file then
           local data = minetest.serialize(schem)
+          --local data = dump(schem)
           file:write(data)
           file:close()
         end
@@ -695,8 +722,12 @@ local function shacks(write, read, get_index, size, suburb_orient)
                 local param2 = house.data[isch].param2 or 0
                 if param2 < 4 then
                   param2 = ((param2 % 4) + rot) % 4
-                elseif house.data[isch].name ~= 'squaresville:light_panel' then
-                  --print(house.data[isch].name, param2)
+                else
+                  local dir = param2 % 24
+                  for i = 1, rot do
+                    dir = drotp[dir]
+                  end
+                  param2 = dir
                 end
                 local name = string.gsub(house.data[isch].name, 'cityscape', 'squaresville')
                 local top = biomes[biome_name].node_top or 'default:dirt'
