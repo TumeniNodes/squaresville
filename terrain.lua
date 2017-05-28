@@ -400,7 +400,7 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
     for x = minp.x, maxp.x do
       index = index + 1
       local ivm = area:index(x, minp.y - 1, z)
-      local road_here = true
+      local road_here = false
       local sidewalk_here = false
       local town = true
       local suburb = true
@@ -412,40 +412,47 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
       local dist_z = (z + max_depth + half_road_size) % wild_limits
       local dist_block_x = x + max_depth + half_road_size
       local dist_block_z = z + max_depth + half_road_size
+      local sewer, sewer_wall
       local humidity = (humidity_1_map[index] + humidity_2_map[index]) * (2.5 - (river / river_scale)) / 2
       humidity_1_map[index] = humidity
 
       if dist_x >= suburb_limits_plus_road_size and dist_z >= suburb_limits_plus_road_size then
         town = false
         suburb = false
-        road_here = false
       elseif ((dist_x < interior_limit or dist_z < interior_limit) and not (dist_x < city_limits_plus_road_size and dist_z < city_limits_plus_road_size)) or (dist_x >= city_limits_plus_road_size and dist_z >= city_limits_plus_road_size) then
         if dist_x < suburb_limits_plus_road_size and dist_z < suburb_limits_plus_road_size then
           suburb = false
-          road_here = false
         elseif dist_x >= suburb_limits_plus_road_size and dist_block_x % block_plus_road_size >= road_size then
           town = false
-          road_here = false
         elseif dist_z >= suburb_limits_plus_road_size and dist_block_z % block_plus_road_size >= road_size then
           town = false
-          road_here = false
         else
           town = false
+          road_here = true
+          if dist_block_x % block_plus_road_size == half_road_size and dist_block_z % block_plus_road_size == half_road_size then
+            sewer = true
+          elseif (dist_block_x % block_plus_road_size <= half_road_size + 1 and dist_block_x % block_plus_road_size >= half_road_size - 1) and (dist_block_z % block_plus_road_size <= half_road_size + 1 and dist_block_z % block_plus_road_size >= half_road_size - 1) then
+            sewer_wall = true
+          end
         end
       elseif dist_block_x % block_plus_road_size >= road_size and dist_block_z % block_plus_road_size >= road_size then
         suburb = false
-        road_here = false
+      else
+        road_here = true
+        if dist_block_x % block_plus_road_size == half_road_size and dist_block_z % block_plus_road_size == half_road_size then
+          sewer = true
+          elseif (dist_block_x % block_plus_road_size <= half_road_size + 1 and dist_block_x % block_plus_road_size >= half_road_size - 1) and (dist_block_z % block_plus_road_size <= half_road_size + 1 and dist_block_z % block_plus_road_size >= half_road_size - 1) then
+          sewer_wall = true
+        end
       end
 
       if town and not road_here and (dist_block_x % block_plus_road_size < road_size + 2 or dist_block_z % block_plus_road_size < road_size + 2) then
         sidewalk_here = true
       elseif town and ((dist_block_x % block_plus_road_size >= block_plus_road_size - 2 and dist_block_z % block_plus_road_size >= road_size) or (dist_block_z % block_plus_road_size >= block_plus_road_size - 2 and dist_block_x % block_plus_road_size >= road_size)) then
-        road_here = false
         sidewalk_here = true
       elseif suburb and not road_here and ((dist_x > dist_z and dist_block_x % block_plus_road_size < road_size + 2) or (dist_z > dist_x and dist_block_z % block_plus_road_size < road_size + 2)) then
         sidewalk_here = true
       elseif suburb and not road_here and ((dist_x > dist_z and dist_block_x % block_plus_road_size >= block_plus_road_size - 2) or (dist_z > dist_x and dist_block_z % block_plus_road_size >= block_plus_road_size - 2)) then
-        road_here = false
         sidewalk_here = true
       end
 
@@ -508,7 +515,21 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
 
       for y = minp.y-1, maxp.y+1 do
         if data[ivm] == node['air'] then
-          if (town or suburb) and y == baseline + 1 and road_here then
+          if (town or suburb) and sewer_wall and y <= baseline and y >= baseline - 8 then
+            data[ivm] = node[breaker('squaresville:concrete', desolation)]
+          elseif (town or suburb) and sewer and y == baseline + 2 then
+            data[ivm] = node[breaker('doors:trapdoor_steel', desolation)]
+            p2data[ivm] = 0
+          elseif (town or suburb) and sewer and y <= baseline + 1 and y > baseline - 15 then
+            data[ivm] = node[breaker('default:ladder_steel', desolation)]
+            p2data[ivm] = 4
+          elseif (town or suburb) and y > baseline - 15 and y < baseline - 8 and road_here then
+            -- nop
+          elseif sidewalk_here and y > baseline - 15 and y < baseline - 8 then
+            data[ivm] = node[breaker('squaresville:concrete', desolation)]
+          elseif (town or suburb) and (y == baseline - 15 or y == baseline - 8) and road_here then
+            data[ivm] = node[breaker('squaresville:concrete', desolation)]
+          elseif (town or suburb) and y == baseline + 1 and road_here then
             if squaresville.cobble then
               data[ivm] = node[breaker('squaresville:road', desolation, 100 - squaresville.humidity[index] + (y - baseline))]
             else
