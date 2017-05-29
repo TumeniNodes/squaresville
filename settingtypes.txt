@@ -8,3 +8,11 @@ squaresville_desolation (Desolation) int 0
 # The chance (in ten) that a given lot will be empty,
 # rather than occupied by a building.
 squaresville_vacancies (Vacancies) int 0
+
+# Make Squaresville the main world, rather than
+# using a standard mapgen.
+squaresville_single_node (Single Node) bool false
+
+# Make Squaresville ruins the main world, rather than
+# using a standard mapgen.
+squaresville_single_node_ruin (Single Node Ruin) bool false

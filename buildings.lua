@@ -5,7 +5,6 @@
 
 local max_river = 4
 
-local baseline = squaresville.baseline
 local biomes = squaresville.biomes
 local block_plus_road_size = squaresville.block_plus_road_size
 local block_size = squaresville.block_size
@@ -13,7 +12,6 @@ local breaker = squaresville.breaker
 local city_limits_plus_road_size = squaresville.city_limits_plus_road_size
 local cobble = squaresville.cobble
 local desolation = squaresville.desolation
-local extent_bottom = squaresville.extent_bottom
 local get_biome = squaresville.get_biome
 local get_decoration = squaresville.get_decoration
 local ground_nodes = squaresville.ground_nodes
@@ -167,10 +165,10 @@ minetest.register_chatcommand("saveplot", {
       p1.x = p1.x + size
       px = 1
     end
-    if pos.y >= baseline and pos.y <= baseline + max_schem_height then
-      p1.y = baseline
-    elseif pos.y >= baseline + squaresville.dim_sep and pos.y <= baseline + squaresville.dim_sep + max_schem_height then
-      p1.y = baseline + squaresville.dim_sep
+    if pos.y >= squaresville.baseline and pos.y <= squaresville.baseline + max_schem_height then
+      p1.y = squaresville.baseline
+    elseif pos.y >= squaresville.baseline_ruin and pos.y <= squaresville.baseline_ruin + max_schem_height then
+      p1.y = squaresville.baseline_ruin
     end
     p1.z = math.floor((pos.z + max_height + half_road_size) / block_plus_road_size) * block_plus_road_size - max_height - half_road_size + road_size + 0
     if pos.z - p1.z >= size then
@@ -815,7 +813,7 @@ local function park(data, param, dx, dy, dz)
 end
 
 
-function squaresville.build(minp, maxp, data, p2data, area, node, baseline)
+function squaresville.build(minp, maxp, data, p2data, area, node, baseline, heightmap)
   local size = block_size - road_size + 2
   if baseline == squaresville.baseline then
     desolation = 0

@@ -85,7 +85,7 @@ minetest.register_node('squaresville:concrete5_broken', newnode)
 minetest.register_node('squaresville:light_panel', {
   description = 'Light Panel',
   tiles = {'default_sandstone.png'},
-  light_source = 8,
+  light_source = 14,
   paramtype = 'light',
   paramtype2 = 'facedir',
   drawtype = 'nodebox',

@@ -2,7 +2,6 @@
 -- Copyright Duane Robertson (duane@duanerobertson.com), 2017
 -- Distributed under the LGPLv2.1 (https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html)
 
-local extent_bottom = squaresville.extent_bottom
 local block_size = 60
 local breaker = squaresville.breaker
 local city_blocks = 3
@@ -17,8 +16,6 @@ local terrain_scale = 50
 local tree_map = {}
 local tree_spacing = 4
 local water_level_base_mod = -2
-local water_level_base = squaresville.baseline + water_level_base_mod
-local water_level_town = squaresville.baseline - 10
 local wild_size = 6  --6
 
 local math_abs = math.abs
@@ -331,7 +328,7 @@ end
 squaresville.get_biome = get_biome
 
 
-squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
+squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, heightmap)
   if not (minp and maxp and data and p2data and area and node and type(data) == 'table' and type(p2data) == 'table') then
     return
   end
@@ -390,10 +387,16 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
     end
   end
 
+  if squaresville.single_node or squaresville.single_node_ruin then
+    for k, v in pairs(heightmap) do
+      heightmap[k] = nil
+    end
+  end
+
   squaresville.in_town = nil
   squaresville.suburbs = nil
-  water_level_base = baseline - 2
-  water_level_town = baseline - 10
+  local water_level_base = baseline - 2
+  local water_level_town = baseline - 10
 
   local index = 0
   for z = minp.z, maxp.z do
@@ -507,6 +510,9 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline)
 
       local biome_name = get_biome(index, biome_height, (suburb or town))
       height = height + baseline
+      if squaresville.single_node or squaresville.single_node_ruin then
+        heightmap[index] = height
+      end
 
       local fill_1 = height - (biomes[biome_name].depth_top or 0)
       local fill_2 = fill_1 - (biomes[biome_name].depth_filler or 0)

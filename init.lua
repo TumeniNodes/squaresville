@@ -9,9 +9,11 @@ squaresville.path = minetest.get_modpath(minetest.get_current_modname())
 squaresville.world = minetest.get_worldpath()
 
 squaresville.baseline = 8000  -- the altitude of the squaresville "dimension"
-squaresville.dim_sep = 2000  -- how far up to the ruin "dimension"
+squaresville.baseline_ruin = 10000  -- how far up to the ruin "dimension"
 squaresville.extent_bottom = -500  -- how far down to make the squaresville
+squaresville.extent_bottom_ruin = -500  -- how far down to make the squaresville
 squaresville.extent_top = 500  -- how far up to make it
+squaresville.extent_top_ruin = 500  -- how far up to make it
 
 local baseline = squaresville.baseline
 local extent_bottom = squaresville.extent_bottom
@@ -43,9 +45,37 @@ if squaresville.light_panels == nil then
 	squaresville.light_panels = true
 end
 
+squaresville.single_node = minetest.setting_getbool('squaresville_single_node')
+if squaresville.single_node == nil then
+	squaresville.single_node = false
+end
 
-if not minetest.set_mapgen_setting then
-  return
+squaresville.single_node_ruin = minetest.setting_getbool('squaresville_single_node_ruin')
+if squaresville.single_node_ruin == nil then
+	squaresville.single_node_ruin = false
+end
+
+
+--if not minetest.set_mapgen_setting then
+--  return
+--end
+
+
+if squaresville.single_node_ruin then
+	-- Set mapgen parameters to singlenode
+  squaresville.baseline_ruin = 0
+  squaresville.extent_bottom_ruin = -31000
+	minetest.register_on_mapgen_init(function(mgparams)
+		minetest.set_mapgen_params({mgname="singlenode", flags="nolight"})
+	end)
+elseif squaresville.single_node then
+	-- Set mapgen parameters to singlenode
+  squaresville.baseline_ruin = 8000
+  squaresville.baseline = 0
+  squaresville.extent_bottom = -31000
+	minetest.register_on_mapgen_init(function(mgparams)
+		minetest.set_mapgen_params({mgname="singlenode", flags="nolight"})
+	end)
 end
 
 

@@ -18,13 +18,17 @@ local function teleport(user, ruin)
   local newpos = {x=0,y=squaresville.baseline+2,z=0}
   local wl = squaresville.wild_limits
   local y = squaresville.baseline + 2
+  local extent_bottom = squaresville.extent_bottom
+  local extent_top = squaresville.extent_top
   if ruin then
-    y = y + squaresville.dim_sep
+    y = squaresville.baseline_ruin + 2
+    extent_bottom = squaresville.extent_bottom_ruin
+    extent_top = squaresville.extent_top_ruin
   end
 
   local tdx = math.floor((pos.x + wl / 2) / wl) * wl - 0
   local tdz = math.floor((pos.z + wl / 2) / wl) * wl - 0
-  if pos.y < y + squaresville.extent_bottom or pos.y > y + squaresville.extent_top then
+  if pos.y < y + extent_bottom or pos.y > y + extent_top then
     newpos = {x=tdx, y=y, z=tdz}
   else
     newpos = {x=tdx, y=120, z=tdz}
