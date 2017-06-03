@@ -344,10 +344,12 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
     end
   end
 
+  local extent_bottom = squaresville.extent_bottom
   if baseline == squaresville.baseline then
     desolation = 0
   elseif desolation == 0 then
     desolation = 1
+    extent_bottom = squaresville.extent_bottom_ruin
   end
 
   if not (ground_1_noise and river_noise) then
@@ -520,7 +522,11 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
       local deco
 
       for y = minp.y-1, maxp.y+1 do
-        if data[ivm] == node['air'] then
+        if y < baseline + extent_bottom then
+          data[ivm] = node['air']
+        elseif y == baseline + extent_bottom then
+          data[ivm] = node['squaresville:bedrock']
+        elseif data[ivm] == node['air'] then
           if (town or suburb) and sewer_wall and y <= baseline and y >= baseline - 8 then
             data[ivm] = node[breaker('squaresville:concrete', desolation)]
           elseif (town or suburb) and sewer and y == baseline + 2 then
@@ -554,8 +560,10 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
             deco = y
           elseif y <= fill_1 and y > fill_2 then
             data[ivm] = node[biomes[biome_name].node_filler or 'default:stone']
-          elseif y < height then
+          elseif y < height and y > -100 then
             data[ivm] = node[biomes[biome_name].node_stone or 'default:stone']
+          elseif y < height then
+            data[ivm] = node['default:stone']
           elseif river < river_cutoff and y <= water_level then
             data[ivm] = node[biomes[biome_name].node_river_water or 'default:water_source']
           elseif y <= water_level and y > water_fill_1 then

@@ -4,11 +4,18 @@
 
 
 local newnode
+local light_max = default.light_max or 10
 
 local darkening = 0
 if squaresville.desolation > 0 then
   darkening = 100
 end
+
+newnode = squaresville.clone_node("default:stone")
+newnode.diggable = false
+newnode.groups = {}
+minetest.register_node("squaresville:bedrock", newnode)
+
 
 minetest.register_node('squaresville:road', {
   description = 'Road',
@@ -257,3 +264,52 @@ minetest.register_node("squaresville:carpet", {
   groups = {cracky = 2, level = 1},
 })
 minetest.register_alias("squaresville:carpet_broken", "default:stone")
+
+
+newnode = squaresville.clone_node("default:glass")
+newnode.description = "Glowing Crystal"
+--newnode.tiles = {"squaresville_plate_glass.png^colorize:#FFFF00,150",}
+newnode.tiles = {"squaresville_crystal.png",}
+newnode.light_source = LIGHT_MAX - 4
+minetest.register_node("squaresville:crystal_glow", newnode)
+
+
+if minetest.registered_items['underworlds:glowing_fungal_stone'] then
+  minetest.register_alias("squaresville:glowing_fungal_stone", 'underworlds:glowing_fungal_stone')
+  minetest.register_alias("squaresville:glowing_fungus", 'underworlds:glowing_fungus')
+else
+  -- Glowing fungal stone provides an eerie light.
+  minetest.register_node("squaresville:glowing_fungal_stone", {
+    description = "Glowing Fungal Stone",
+    tiles = {"default_stone.png^vmg_glowing_fungal.png",},
+    is_ground_content = true,
+    light_source = light_max - 4,
+    groups = {cracky=3, stone=1},
+    drop = {items={ {items={"default:cobble"},}, {items={"squaresville:glowing_fungus",},},},},
+    sounds = default.node_sound_stone_defaults(),
+  })
+
+  -- Glowing fungus grows underground.
+  minetest.register_craftitem("squaresville:glowing_fungus", {
+    description = "Glowing Fungus",
+    drawtype = "plantlike",
+    paramtype = "light",
+    tiles = {"vmg_glowing_fungus.png"},
+    inventory_image = "vmg_glowing_fungus.png",
+    groups = {dig_immediate = 3},
+  })
+end
+
+
+minetest.register_node("squaresville:wet_fungus", {
+	description = "Leaves",
+	--drawtype = "allfaces_optional",
+	--waving = 1,
+	tiles = {"wet_fungus_2.png"},
+	--special_tiles = {"wet_fungus_2.png"},
+	--paramtype = "light",
+	--is_ground_content = false,
+	groups = {snappy = 3},
+	drop = '',
+	sounds = default.node_sound_leaves_defaults(),
+})

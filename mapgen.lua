@@ -55,7 +55,7 @@ local function generate(p_minp, p_maxp, seed)
 
   for fake_loop = 1, 1 do
     squaresville.terrain(minp, maxp, data, p2data, area, node, baseline, heightmap)
-    --squaresville.caves(minp, maxp, data, p2data, area, node, baseline, heightmap)
+    squaresville.caves(minp, maxp, data, p2data, area, node, baseline, heightmap)
 
     if minp.y < baseline + 800 and maxp.y > baseline - 25 then
       squaresville.build(minp, maxp, data, p2data, area, node, baseline, heightmap)
@@ -84,7 +84,7 @@ end
 if squaresville.path then
   dofile(squaresville.path .. "/terrain.lua")
   dofile(squaresville.path .. "/buildings.lua")
-  --dofile(squaresville.path .. "/caves.lua")
+  dofile(squaresville.path .. "/caves.lua")
 end
 
 
