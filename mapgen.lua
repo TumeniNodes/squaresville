@@ -5,6 +5,7 @@
 
 local DEBUG
 local node = squaresville.node
+local no_buildings = squaresville.no_buildings
 
 
 local data = {}
@@ -57,7 +58,7 @@ local function generate(p_minp, p_maxp, seed)
     squaresville.terrain(minp, maxp, data, p2data, area, node, baseline, heightmap)
     squaresville.caves(minp, maxp, data, p2data, area, node, baseline, heightmap)
 
-    if minp.y < baseline + 800 and maxp.y > baseline - 25 then
+    if not no_buildings and minp.y < baseline + 800 and maxp.y > baseline - 25 then
       squaresville.build(minp, maxp, data, p2data, area, node, baseline, heightmap)
     end
   end

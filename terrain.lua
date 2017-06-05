@@ -7,6 +7,7 @@ local breaker = squaresville.breaker
 local city_blocks = 3
 local desolation = squaresville.desolation
 local max_depth = 31000
+local no_buildings = squaresville.no_buildings
 local river_cutoff = 3  -- 3
 local river_scale = 15
 local road_size = 7
@@ -464,9 +465,14 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
       if town or suburb then
         squaresville.in_town = true
 
-        if desolation == 0 then
+        if not no_buildings and desolation == 0 then
           humidity = suburb_humidity
         end
+      end
+
+      if no_buildings then
+        road_here = nil
+        sidewalk_here = nil
       end
 
       -- Slope the terrain at the edges of town to let it blend better.
@@ -527,12 +533,12 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
         elseif y == baseline + extent_bottom then
           data[ivm] = node['squaresville:bedrock']
         elseif data[ivm] == node['air'] then
-          if (town or suburb) and sewer_wall and y <= baseline and y >= baseline - 8 then
+          if not no_buildings and (town or suburb) and sewer_wall and y <= baseline and y >= baseline - 8 then
             data[ivm] = node[breaker('squaresville:concrete', desolation)]
-          elseif (town or suburb) and sewer and y == baseline + 2 then
+          elseif not no_buildings and (town or suburb) and sewer and y == baseline + 2 then
             data[ivm] = node[breaker('doors:trapdoor_steel', desolation)]
             p2data[ivm] = 0
-          elseif (town or suburb) and sewer and y <= baseline + 1 and y > baseline - 15 then
+          elseif not no_buildings and (town or suburb) and sewer and y <= baseline + 1 and y > baseline - 15 then
             data[ivm] = node[breaker('default:ladder_steel', desolation)]
             p2data[ivm] = 4
           elseif (town or suburb) and y > baseline - 15 and y < baseline - 8 and road_here then

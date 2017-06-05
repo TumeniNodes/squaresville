@@ -16,3 +16,6 @@ squaresville_single_node (Single Node) bool false
 # Make Squaresville ruins the main world, rather than
 # using a standard mapgen.
 squaresville_single_node_ruin (Single Node Ruin) bool false
+
+# Don't generate roads or buildings.
+squaresville_no_buildings (No Buildings) bool false
