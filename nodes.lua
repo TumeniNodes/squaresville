@@ -270,7 +270,7 @@ newnode = squaresville.clone_node("default:glass")
 newnode.description = "Glowing Crystal"
 --newnode.tiles = {"squaresville_plate_glass.png^colorize:#FFFF00,150",}
 newnode.tiles = {"squaresville_crystal.png",}
-newnode.light_source = LIGHT_MAX - 4
+newnode.light_source = 10
 minetest.register_node("squaresville:crystal_glow", newnode)
 
 

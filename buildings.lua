@@ -972,7 +972,10 @@ function squaresville.build(minp, maxp, data, p2data, area, node, baseline, heig
 
                       if tree_y then
                         tree_y = tree_y + (string.match(biome_name, '^rainforest') and 0 or 1)
-                        place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
+                        ivm = area:index(x, tree_y, z)
+                        if data[ivm] == node['air'] then
+                          place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
+                        end
                       end
                     end
                   end

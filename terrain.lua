@@ -581,13 +581,16 @@ squaresville.terrain = function(minp, maxp, data, p2data, area, node, baseline, 
       if deco then
         if (not (town or suburb)) and biomes[biome_name].special_trees and tree_map[ x .. ',' .. z ] and (biome_name ~= 'savanna' or math.random(20) == 1) then
           local tree_y = deco + (string.match(biome_name, '^rainforest') and 0 or 1)
-          squaresville.place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, squaresville.schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
+          ivm = area:index(x, tree_y, z)
+          if data[ivm] == node['air'] then
+            squaresville.place_schematic(minp, maxp, data, p2data, area, node, {x=x,y=tree_y,z=z}, squaresville.schematics[biomes[biome_name].special_trees[math_random(#biomes[biome_name].special_trees)]], true)
+          end
         else
           local decoration = get_decoration(biome_name)
           if decoration then
-            ivm = area:index(x, deco, z)
-            if data[ivm + area.ystride] == node['air'] then
-              data[ivm + area.ystride] = node[decoration]
+            ivm = area:index(x, deco + 1, z)
+            if data[ivm] == node['air'] then
+              data[ivm] = node[decoration]
             end
           end
         end
