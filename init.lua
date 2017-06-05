@@ -55,7 +55,7 @@ if squaresville.single_node_ruin == nil then
 	squaresville.single_node_ruin = false
 end
 
-squaresville.single_node_ruin = minetest.setting_getbool('squaresville_no_buildings')
+squaresville.no_buildings = minetest.setting_getbool('squaresville_no_buildings')
 if squaresville.no_buildings == nil then
 	squaresville.no_buildings = false
 end
